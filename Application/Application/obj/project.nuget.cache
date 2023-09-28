@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "l7pse/lPUSkpP/FQj8hBeIRUEGTuowV4joRxPCHCh0GRx9f7K8/QWkC30RzSOnue5nJgc9QxeQXkszE4pLiunw==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Eliott Clavier\\Desktop\\Ad vitam\\Projets DEV\\Epitech\\T-DAT-901\\Application\\Application\\Application.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Eliott Clavier\\.nuget\\packages\\microsoft.visualstudio.azure.containers.tools.targets\\1.15.1\\microsoft.visualstudio.azure.containers.tools.targets.1.15.1.nupkg.sha512"
+  ],
+  "logs": []
+}
