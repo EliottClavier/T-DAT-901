@@ -1,2 +1,7 @@
 .vscode
 .idea
+
+### .env (except examples) ###
+.env
+env/*
+!env/*.example.*

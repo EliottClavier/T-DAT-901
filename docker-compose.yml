@@ -1,0 +1,87 @@
+version: '3'
+services:
+  app:
+    container_name: app
+    build:
+      context: ./Application
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - kafka-net
+    depends_on:
+      - kafka
+      - spark
+
+  kafka:
+    container_name: kafka
+    image: confluentinc/cp-kafka:latest
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+    networks:
+      - kafka-net
+      - producer-consumer-net
+
+  spark:
+    container_name: spark
+    build:
+      context: ./spark
+    restart: unless-stopped
+    ports:
+      - "4040:4040"
+    networks:
+      - producer-consumer-net
+      - influxdb-net
+    depends_on:
+      - kafka
+      - influxdb
+
+  influxdb:
+    container_name: influxdb
+    image: influxdb:latest
+    restart: unless-stopped
+    environment:
+      INFLUXDB_DB: ${INFLUXDB_DB}
+      INFLUXDB_ADMIN_USER: ${INFLUXDB_USER}
+      INFLUXDB_ADMIN_PASSWORD: ${INFLUXDB_PASSWORD}
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb
+    networks:
+      - influxdb-net
+      - grafana-net
+    depends_on:
+      - kafka
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USERNAME}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana-provisioning/:/etc/grafana/provisioning
+    networks:
+      - grafana-net
+    depends_on:
+      - app
+      - kafka
+      - spark
+      - influxdb
+
+networks:
+  kafka-net:
+  producer-consumer-net:
+  influxdb-net:
+  grafana-net:
+
+volumes:
+  influxdb-data:
+  grafana-data:
+
