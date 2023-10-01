@@ -30,7 +30,7 @@ namespace Core
 
             //Console.WriteLine($"Name: {info.Name}, Buy Price: {info.BuyPrice}, 24h Volume: {info.Volume24h}");
         }
-        public Task<CryptoData> GetCryptoInfoAsync(string symbol)
+        public Task<CryptoData?> GetCryptoInfoAsync(string symbol)
         {
             return Task.FromResult( _scraperService.GetCryptoInfoAsync());
         }
@@ -46,7 +46,8 @@ namespace Core
         private async void DoWork(object state)
         {
             var info = await GetCryptoInfoAsync(_symbol);
-            //Console.WriteLine($"Name: {info.Name}, Buy Price: {info.BuyPrice}, 24h Volume: {info.Volume24h}");
+            Console.WriteLine($"Name: {info.Name}, Buy Price: {info.Price}, 24h Volume: {info.Volume24H} Supply: {info.CirculatingSupply} TimeStamp: {info.TimeStamp}");
+          
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

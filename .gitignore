@@ -8,3 +8,4 @@ env/*
 /Application/Application/bin/Debug/net6.0
 /Application/Core/bin/Debug/net6.0
 *.exe
+/Application/Domain/bin/Debug/net6.0

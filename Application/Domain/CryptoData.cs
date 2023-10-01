@@ -8,10 +8,15 @@ namespace Domain
 {
     public class CryptoData
     {
-        public List<string> Name { get; set; } = new List<string>();
-        public List<string> MarketCap { get; set; } = new List<string>();
-        public List<string> Price { get; set; } = new List<string>();
-        public List<string> CirculatingSupply { get; set; } = new List<string>();
-        public List<string> Symbol { get; set; } = new List<string>();
+        public string? Name { get; set; }
+        public string? Symbol { get; set; }
+        //public decimal Price { get; set; }
+        public string? Price { get; set; }
+        //public decimal Volume24H { get; set; }
+        public string? Volume24H { get; set; }
+        //public decimal CirculatingSupply { get; set; }
+        public string? CirculatingSupply { get; set; }
+        public long TimeStamp { get; set; }
+      
     }
 }
