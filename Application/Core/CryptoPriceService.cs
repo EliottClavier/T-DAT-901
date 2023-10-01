@@ -26,7 +26,7 @@ namespace Core
         {
             var info = await GetCryptoInfoAsync(_symbol);
             var jsonInfo = JsonConvert.SerializeObject(info);
-            await _kafkaProducer.ProduceAsync("crypto-prices", jsonInfo); 
+            await _kafkaProducer.ProduceAsync("bitcoin-prices", jsonInfo); 
 
             //Console.WriteLine($"Name: {info.Name}, Buy Price: {info.BuyPrice}, 24h Volume: {info.Volume24h}");
         }
@@ -47,7 +47,8 @@ namespace Core
         {
             var info = await GetCryptoInfoAsync(_symbol);
             Console.WriteLine($"Name: {info.Name}, Buy Price: {info.Price}, 24h Volume: {info.Volume24H} Supply: {info.CirculatingSupply} TimeStamp: {info.TimeStamp}");
-          
+            var jsonInfo = JsonConvert.SerializeObject(info);
+            await _kafkaProducer.ProduceAsync("crypto-info", jsonInfo);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

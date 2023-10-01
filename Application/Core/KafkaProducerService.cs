@@ -13,9 +13,15 @@ public class KafkaProducerService
 
     public async Task ProduceAsync(string topic, string message)
     {
-        using (var producer = new ProducerBuilder<Null, string>(_config).Build())
+        try
         {
+            using var producer = new ProducerBuilder<Null, string>(_config).Build();
             await producer.ProduceAsync(topic, new Message<Null, string> { Value = message });
         }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);  
+        }
+     
     }
 }
