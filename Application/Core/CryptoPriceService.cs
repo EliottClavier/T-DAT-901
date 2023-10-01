@@ -26,7 +26,7 @@ namespace Core
         {
             var info = await GetCryptoInfoAsync(_symbol);
             var jsonInfo = JsonConvert.SerializeObject(info);
-            await _kafkaProducer.ProduceAsync("bitcoin-prices", jsonInfo); 
+            await _kafkaProducer.ProduceAsync("bitcoin-infos", jsonInfo); 
 
             //Console.WriteLine($"Name: {info.Name}, Buy Price: {info.BuyPrice}, 24h Volume: {info.Volume24h}");
         }
