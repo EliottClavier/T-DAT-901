@@ -10,3 +10,4 @@ env/*
 *.exe
 /Application/Domain/bin/Debug/net6.0
 /Application/Api/bin/Debug/net6.0
+/Application/Infrastructure/bin/Debug/net6.0

@@ -1,6 +1,6 @@
 ﻿using Confluent.Kafka;
 
-namespace Core;
+namespace Infrastructure.Kafka;
 
 public class KafkaProducerService
 {
@@ -18,10 +18,10 @@ public class KafkaProducerService
             using var producer = new ProducerBuilder<Null, string>(_config).Build();
             await producer.ProduceAsync(topic, new Message<Null, string> { Value = message });
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);  
+            Console.WriteLine(ex.Message);
         }
-     
+
     }
 }
