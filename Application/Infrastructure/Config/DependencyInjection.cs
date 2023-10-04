@@ -15,7 +15,7 @@ namespace Infrastructure.Config
         {
             services.AddSingleton(new KafkaProducerService("localhost:9092"));
 
-            services.AddTransient<Func<string, ICryptoScraperService>>(serviceProvider => key =>
+            services.AddSingleton<Func<string, ICryptoScraperService>>(serviceProvider => key =>
             {
                 var cmcLogger = serviceProvider.GetRequiredService<ILogger<CoinMarketCapCryptoScraperService>>();
                 var binLogger = serviceProvider.GetRequiredService<ILogger<BinanceScraperService>>();

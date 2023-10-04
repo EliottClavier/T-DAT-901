@@ -30,9 +30,9 @@ namespace Core
             _scraperServices = new List<ICryptoScraperService>
             {
                 serviceFactory("CMC-BTC"),
-                //serviceFactory("CMC-ETH"),
-                //serviceFactory("BNB-BTC"),
-                //serviceFactory("BNB-ETH")
+                serviceFactory("CMC-ETH"),
+                serviceFactory("BNB-BTC"),
+                serviceFactory("BNB-ETH")
             };
         }
         private void FetchCryptoInfo(ICryptoScraperService service)
@@ -42,11 +42,12 @@ namespace Core
                 //if (Monitor.TryEnter(_lock))
                 {
                     var info = service.GetCryptoInfoAsync();
+
                     var jsonInfo = JsonConvert.SerializeObject(info);
                     //await _kafkaProducer.ProduceAsync("bitcoin-infos", jsonInfo);
 
                     _logger.LogInformation(
-                        $"Name: {info.CurrencyName}, Buy Price: {info.Price}, 24h Volume: {info.Volume24H} Supply: {info.CirculatingSupply} TimeStamp: {info.TimeStamp}");
+                        $"Name: {info?.CurrencyName}, Buy Price: {info?.Price}, 24h Volume: {info?.Volume24H} Supply: {info?.CirculatingSupply} TimeStamp: {info?.TimeStamp}");
                 }
             }
             catch (Exception ex)
@@ -62,12 +63,13 @@ namespace Core
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+           
             foreach (var service in _scraperServices)
             {
                 void Callback(object? _) =>  FetchCryptoInfo(service);
 
                 var timer = new Timer(Callback,
-                    null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
+                    null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
 
                 _timers.Add(timer);
             }
@@ -86,6 +88,8 @@ namespace Core
 
         public void Dispose()
         {
+            StopAsync(CancellationToken.None);
+
             foreach (var timer in _timers)
             {
                 timer?.Dispose();

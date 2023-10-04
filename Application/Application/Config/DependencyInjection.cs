@@ -19,5 +19,14 @@ namespace Application.Config
 
             return services;
         }
+        public static IServiceCollection AddApplicationCMD(this IServiceCollection services,
+            IConfiguration configuration)
+        {
+
+            services.AddSingleton<CryptoHostedService>();
+
+            return services;
+        }
     }
 }
+

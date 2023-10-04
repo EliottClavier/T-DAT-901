@@ -25,6 +25,7 @@ namespace Infrastructure.Scraper
             var options = new ChromeOptions();
             options.AddArgument("headless");
             options.AddArgument("--no-sandbox");
+            options.AddArgument("--disable-gpu");
             _driver = new ChromeDriver(ChromeDriverService.CreateDefaultService(), options, TimeSpan.FromMinutes(3));
             _symbol = symbol;
             _pairSymbol = pairSymbol;
@@ -38,20 +39,21 @@ namespace Infrastructure.Scraper
 
         public CryptoData? GetCryptoInfoAsync()
         {
-         
-                try
+            //_logger.LogInformation("Fetching data from {url}", _url);
+            try
                 {
-
-
+             
+           
                     NavigateToUrl();
+                //_logger.LogInformation(_driver.PageSource);
+                var price = ExtractData("//*[@id=\"section-coin-overview\"]/div[1]/div[2]/span[2]");
+                //var price = "1";
+                var volume24H = ExtractData("//*[@id=\"section-coin-stats\"]/div/dl/div[2]/div[1]/dd");
+                //var volume24H = "0";
+                //var supply = "0";
+                var supply = ExtractData("//*[@id=\"section-coin-stats\"]/div/dl/div[5]/div/dd");
 
-                    var price = ExtractData("//*[@id=\"section-coin-overview\"]/div[1]/div[2]/span[2]");
-                    //var volume24H = ExtractData("//*[@id=\"section-coin-stats\"]/div/dl/div[2]/div[1]/dd");
-                    var volume24H = "0";
-                    var supply = "0";
-                    //var supply = ExtractData("//*[@id=\"section-coin-stats\"]/div/dl/div[5]/div/dd");
-
-                    return new CryptoData(
+                return new CryptoData(
 
                         _symbol,
                         _pairSymbol,
@@ -64,7 +66,7 @@ namespace Infrastructure.Scraper
                     );
                 }
                 catch (Exception e)
-                {
+                {   Console.WriteLine(e);
                     _logger.LogError(e, "An error occurred while fetching data.");
                     return new CryptoData();
                 }
