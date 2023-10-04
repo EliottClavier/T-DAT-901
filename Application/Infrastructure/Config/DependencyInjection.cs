@@ -27,9 +27,9 @@ namespace Infrastructure.Config
                     case "CMC-ETH":
                         return new CoinMarketCapCryptoScraperService(CurrencySymbol.Eth, "ETHUSD", Exchange.CoinMarketCap, "https://coinmarketcap.com/currencies/ethereum", cmcLogger);
                     case "BNB-BTC":
-                        return new BinanceScraperService(CurrencySymbol.Btc, "BTCUSD", Exchange.Binance, "https://www.binance.com/en/trade/BTC_USDT", binLogger);
+                        return new BinanceScraperService(CurrencySymbol.Btc, "BTCUSD", Exchange.Binance, "https://www.binance.com/en/markets/overview", binLogger);
                     case "BNB-ETH":
-                        return new BinanceScraperService(CurrencySymbol.Eth, "ETHUSD", Exchange.Binance, "https://www.binance.com/en/trade/ETH_USDT", binLogger);
+                        return new BinanceScraperService(CurrencySymbol.Eth, "ETHUSD", Exchange.Binance, "https://www.binance.com/en/markets/overview", binLogger);
                     default:
                         throw new KeyNotFoundException(); 
                 }

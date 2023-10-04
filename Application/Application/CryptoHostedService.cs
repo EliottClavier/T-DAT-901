@@ -47,7 +47,7 @@ namespace Core
                     //await _kafkaProducer.ProduceAsync("bitcoin-infos", jsonInfo);
 
                     _logger.LogInformation(
-                        $"Name: {info?.CurrencyName}, Buy Price: {info?.Price}, 24h Volume: {info?.Volume24H} Supply: {info?.CirculatingSupply} TimeStamp: {info?.TimeStamp}");
+                       $"Exchange: {info?.ExchangeName}, Name: {info?.CurrencyName}, Price: {info?.Price}, 24h Volume: {info?.Volume24H} Supply: {info?.CirculatingSupply} TimeStamp: {info?.TimeStamp}");
                 }
             }
             catch (Exception ex)

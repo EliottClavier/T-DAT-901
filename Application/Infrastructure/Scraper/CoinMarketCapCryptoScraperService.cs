@@ -75,11 +75,7 @@ namespace Infrastructure.Scraper
         }
 
         private void NavigateToUrl()
-        {
-
-   
-
-
+        { 
             if (_driver.Url != _url)
             {
                 _driver.Navigate().GoToUrl(_url);
