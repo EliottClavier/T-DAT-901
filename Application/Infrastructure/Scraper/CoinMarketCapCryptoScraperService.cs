@@ -6,6 +6,9 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
+using Domain.Domain;
+using System;
 
 namespace Infrastructure.Scraper
 {
@@ -19,22 +22,49 @@ namespace Infrastructure.Scraper
         private readonly string _pairSymbol;
         private readonly string _url;
 
+        private readonly ExchangeScrappingInfo _info;
 
-        public CoinMarketCapCryptoScraperService(string symbol, string pairSymbol, string exchange, string url, ILogger<CoinMarketCapCryptoScraperService> logger )
+
+        public CoinMarketCapCryptoScraperService(string symbol, string pairSymbol, string exchange, string url)
+        {
+            var options = new ChromeOptions();
+            options.AddArgument("headless");
+            options.AddArgument("--no-sandbox");
+            options.AddArgument("--disable-gpu");
+            options.AddArgument("--window-size=1920,1080");
+            options.AddArgument("--disable-extensions");
+            _driver = new ChromeDriver(ChromeDriverService.CreateDefaultService(), options, TimeSpan.FromMinutes(3));
+            _symbol = symbol;
+            _pairSymbol = pairSymbol;
+            _exchange = exchange;
+            _url = url;
+            var factory = LoggerFactory.Create(builder => {
+                builder.AddConsole();
+            });
+
+            _logger = factory.CreateLogger<CoinMarketCapCryptoScraperService>();
+
+
+            _driver.Manage().Timeouts().PageLoad.Add(System.TimeSpan.FromSeconds(30));
+        }
+        public CoinMarketCapCryptoScraperService(ExchangeScrappingInfo info)
         {
             var options = new ChromeOptions();
             options.AddArgument("headless");
             options.AddArgument("--no-sandbox");
             options.AddArgument("--disable-gpu");
             _driver = new ChromeDriver(ChromeDriverService.CreateDefaultService(), options, TimeSpan.FromMinutes(3));
-            _symbol = symbol;
-            _pairSymbol = pairSymbol;
-            _exchange = exchange;
-            _url = url;
-            _logger = logger;
+            var factory = LoggerFactory.Create(builder => {
+                builder.AddConsole();
+            });
+            _info = info;
 
-        
+            _logger = factory.CreateLogger<CoinMarketCapCryptoScraperService>();
             _driver.Manage().Timeouts().PageLoad.Add(System.TimeSpan.FromSeconds(30));
+            _symbol =info.CurrencySymbol;
+            _pairSymbol = info.CurrencyPair;
+            _exchange = info.ExchangeName;
+            _url = info.Url;
         }
 
         public CryptoData? GetCryptoInfoAsync()
@@ -46,12 +76,12 @@ namespace Infrastructure.Scraper
            
                     NavigateToUrl();
                 //_logger.LogInformation(_driver.PageSource);
-                var price = ExtractData("//*[@id=\"section-coin-overview\"]/div[1]/div[2]/span[2]");
+                var price = ExtractData(_info.PriceXPath);
                 //var price = "1";
-                var volume24H = ExtractData("//*[@id=\"section-coin-stats\"]/div/dl/div[2]/div[1]/dd");
+                var volume24H = ExtractData(_info.Volume24HXPath);
                 //var volume24H = "0";
                 //var supply = "0";
-                var supply = ExtractData("//*[@id=\"section-coin-stats\"]/div/dl/div[5]/div/dd");
+                var supply = ExtractData(_info.CirculatingSupplyXPath);
 
                 return new CryptoData(
 

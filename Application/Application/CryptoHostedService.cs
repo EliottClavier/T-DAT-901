@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Application;
 using Domain;
+using Domain.Domain;
 using Domain.Ports;
 using Infrastructure.Kafka;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -20,26 +23,29 @@ namespace Core
         private readonly ILogger<CryptoHostedService> _logger;
         private readonly object _lock = new object();
 
-        public CryptoHostedService( KafkaProducerService kafkaProducer, Func<string, ICryptoScraperService>? serviceFactory, ILogger<CryptoHostedService> logger)
+        public CryptoHostedService(KafkaProducerService kafkaProducer,
+            Func<ExchangeScrappingInfo, ICryptoScraperService>? serviceFactory,
+            IExchangeScrappingInfoProvider exchangeScrappingInfoProvider,
+            ILogger<CryptoHostedService> logger)
         {
-           
+
             _kafkaProducer = kafkaProducer;
             _logger = logger;
 
+            var cryptoList = exchangeScrappingInfoProvider.GetExchangeScrappingInfo();
             if (serviceFactory == null) return;
-            _scraperServices = new List<ICryptoScraperService>
+
+            _scraperServices = new List<ICryptoScraperService>();
+            foreach (var crypto in cryptoList)
             {
-                serviceFactory("CMC-BTC"),
-                serviceFactory("CMC-ETH"),
-                serviceFactory("BNB-BTC"),
-                serviceFactory("BNB-ETH")
+                _scraperServices.Add( serviceFactory(crypto));
             };
         }
+
         private void FetchCryptoInfo(ICryptoScraperService service)
         {
             try
             {
-                //if (Monitor.TryEnter(_lock))
                 {
                     var info = service.GetCryptoInfoAsync();
 
@@ -56,17 +62,16 @@ namespace Core
             }
             finally
             {
-                //Monitor.Exit(_lock);
             }
         }
-  
+
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-           
+
             foreach (var service in _scraperServices)
             {
-                void Callback(object? _) =>  FetchCryptoInfo(service);
+                void Callback(object? _) => FetchCryptoInfo(service);
 
                 var timer = new Timer(Callback,
                     null, TimeSpan.Zero, TimeSpan.FromSeconds(5));

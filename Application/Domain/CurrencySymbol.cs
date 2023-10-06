@@ -10,5 +10,10 @@ namespace Domain
     {
         public const string Btc = "BTC";
         public const string Eth = "ETH";
+        public const string Ada = "ADA";
+        public const string Xrp = "XRP";
+
+
+
     }
 }

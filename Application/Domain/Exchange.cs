@@ -8,7 +8,7 @@ namespace Domain
 {
     public class Exchange
     {
-        public const string CoinMarketCap = "CMP";
-        public const string Binance = "BNB";
+        public const string CoinMarketCap = "CoinMarketplace";
+        public const string Binance = "Binance";
     }
 }
