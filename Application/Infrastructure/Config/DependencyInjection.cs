@@ -20,18 +20,16 @@ namespace Infrastructure.Config
       
 
             services.AddSingleton<Func<ExchangeScrappingInfo, ICryptoScraperService>>(info =>
-            {
-                //var cmcLogger = serviceProvider.GetRequiredService<ILogger<CoinMarketCapCryptoScraperService>>();
-                //var binLogger = serviceProvider.GetRequiredService<ILogger<BinanceScraperService>>();
+            {    
 
                 if (info.ExchangeName == Exchange.CoinMarketCap)
                 {
                     switch (info.Currency)
                     {
                         case CurrencySymbol.Btc:
-                            return new CoinMarketCapCryptoScraperService(info);
+                            return new CryptoScraperService(info);
                         case CurrencySymbol.Eth:
-                            return new CoinMarketCapCryptoScraperService(info);
+                            return new CryptoScraperService(info);
                         default:
                             throw new KeyNotFoundException();
                     }
@@ -41,9 +39,9 @@ namespace Infrastructure.Config
                     switch (info.Currency)
                     {
                         case CurrencySymbol.Btc:
-                            return new BinanceScraperService(info);
+                            return new CryptoScraperService(info);
                         case CurrencySymbol.Eth:
-                            return new BinanceScraperService(info);
+                            return new CryptoScraperService(info);
                         // Ajoutez d'autres cas au besoin
                         default:
                             throw new KeyNotFoundException();

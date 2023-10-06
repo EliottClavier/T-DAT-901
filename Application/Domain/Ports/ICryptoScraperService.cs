@@ -2,11 +2,7 @@
 {
     public interface ICryptoScraperService : IDisposable
     {
-
         CryptoData? GetCryptoInfoAsync();
-        
-      
-
     }
 
 }
