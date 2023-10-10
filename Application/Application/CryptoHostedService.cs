@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Application;
-using Domain;
-using Domain.Domain;
+﻿using Domain.Domain;
 using Domain.Ports;
 using Infrastructure.Kafka;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -21,9 +13,10 @@ namespace Core
         private readonly List<ICryptoScraperService> _scraperServices;
         private readonly KafkaProducerService _kafkaProducer;
         private readonly ILogger<CryptoHostedService> _logger;
-        private readonly object _lock = new object();
+      
 
-        public CryptoHostedService(KafkaProducerService kafkaProducer,
+        public CryptoHostedService(
+            KafkaProducerService kafkaProducer,
             Func<ExchangeScrappingInfo, ICryptoScraperService>? serviceFactory,
             IExchangeScrappingInfoProvider exchangeScrappingInfoProvider,
             ILogger<CryptoHostedService> logger)

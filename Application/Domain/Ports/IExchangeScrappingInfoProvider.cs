@@ -1,6 +1,6 @@
 ﻿using Domain.Domain;
 
-namespace Application
+namespace Domain.Ports
 {
     public interface IExchangeScrappingInfoProvider
     {

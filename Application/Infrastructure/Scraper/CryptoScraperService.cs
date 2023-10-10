@@ -15,31 +15,23 @@ namespace Infrastructure.Scraper
         private readonly ChromeDriver _driver;
         private readonly ExchangeScrappingInfo _info;
 
-        public CryptoScraperService(ExchangeScrappingInfo info)
+        public CryptoScraperService(ExchangeScrappingInfo info, ChromeDriver webDriver)
         {
-            var options = new ChromeOptions();
-            options.AddArgument("--headless");
-            options.AddArgument("--no-sandbox");
-            options.AddArgument("--disable-gpu");
-            options.AddArgument("--window-size=1920,1080");
-            options.AddArgument("--disable-extensions");
-            options.AddArgument("--lang=en-US");
-
-            _driver = new ChromeDriver(ChromeDriverService.CreateDefaultService(), options, TimeSpan.FromMinutes(3));     
-            _driver.Manage().Timeouts().PageLoad.Add(System.TimeSpan.FromSeconds(30));
-
             _info = info;
+            _driver = webDriver;
         }
-      
+        ~CryptoScraperService()
+        {
+
+        }
+
         private void NavigateToUrl()
         {
             if (_driver.Url != _info.Url)
             {
                 _driver.Navigate().GoToUrl(_info.Url);
             }
-
         }
-
 
         public CryptoData? GetCryptoInfoAsync()
         {
@@ -98,5 +90,6 @@ namespace Infrastructure.Scraper
             _driver.Dispose();
             _driver.Quit();
         }
+
     }
 }
