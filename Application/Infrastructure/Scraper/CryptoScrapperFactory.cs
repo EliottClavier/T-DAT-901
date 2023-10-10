@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using Infrastructure.WebDriver;
+using OpenQA.Selenium.Remote;
 
 namespace Infrastructure.Scraper
 {
@@ -27,7 +28,16 @@ namespace Infrastructure.Scraper
             if (info != null)
             {
                 var driverFactory = new ChromWebDriverFactory();
-                return new CryptoScraperService(info, driverFactory.CreateDriver());
+
+                if (Environment.GetEnvironmentVariable("RUNNING_IN_CONTAINER") == "true" || true)
+                {
+                    return new CryptoScraperService(info, driverFactory.CreateRemoteDriver());
+                }
+                else
+                {
+                    return new CryptoScraperService(info, driverFactory.CreateDriver());
+                }
+               
             }
             else
             {
