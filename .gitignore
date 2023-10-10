@@ -12,3 +12,4 @@ env/*
 /Application/Api/bin/Debug/net6.0
 /Application/Infrastructure/bin/Debug/net6.0
 /Application/Console/bin/Debug/net6.0
+/.vs
