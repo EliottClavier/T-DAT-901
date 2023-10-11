@@ -34,13 +34,14 @@ namespace Infrastructure.WebDriver
         {
             var options = new ChromeOptions();
             options.AddArgument("--headless");
-            options.AddArgument("--no-sandbox");
+            //options.AddArgument("--no-sandbox");
             options.AddArgument("--disable-gpu");
             options.AddArgument("--window-size=1920,1080");
             options.AddArgument("--disable-extensions");
             options.AddArgument("--lang=en-US");
 
-            var driver = new RemoteWebDriver(new Uri("http://localhost:4444/wd/hub"), options);
+
+            var driver = new RemoteWebDriver(new Uri("http://localhost:4444/wd/hub"), options.ToCapabilities(), TimeSpan.FromMinutes(0.5));
             driver.Manage().Timeouts().PageLoad.Add(TimeSpan.FromSeconds(30));
 
             return driver;

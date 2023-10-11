@@ -29,14 +29,14 @@ namespace Infrastructure.Scraper
             {
                 var driverFactory = new ChromWebDriverFactory();
 
-                if (Environment.GetEnvironmentVariable("RUNNING_IN_CONTAINER") == "true" || true)
-                {
-                    return new CryptoScraperService(info, driverFactory.CreateRemoteDriver());
-                }
-                else
-                {
+                //if (Environment.GetEnvironmentVariable("RUNNING_IN_CONTAINER") == "true" || true)
+                //{
+                //    return new CryptoScraperService(info, driverFactory.CreateRemoteDriver());
+                //}
+                //else
+                //{
                     return new CryptoScraperService(info, driverFactory.CreateDriver());
-                }
+                //}
                
             }
             else
