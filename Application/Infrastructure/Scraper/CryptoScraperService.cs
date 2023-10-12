@@ -27,10 +27,14 @@ namespace Infrastructure.Scraper
 
         private void NavigateToUrl()
         {
-            if (_driver.Url != _info.Url)
+            if (_driver?.Url != _info?.Url)
             {
-                _driver.Navigate().GoToUrl(_info.Url);
+                _driver?.Navigate().GoToUrl(_info.Url);
             }
+            //}else
+            //{
+            //    _driver?.Navigate().Refresh();
+            //}
         }
 
         public CryptoData? GetCryptoInfoAsync()

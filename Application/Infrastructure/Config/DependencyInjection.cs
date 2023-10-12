@@ -19,7 +19,9 @@ namespace Infrastructure.Config
 
             services.AddSingleton<Func<ExchangeScrappingInfo, ICryptoScraperService>>(provider =>
             {
-                var factory = new CryptoScrapperFactory();
+                var logger = provider.GetService<ILogger<CryptoScrapperFactory>>();
+
+                var factory = new CryptoScrapperFactory(logger);
 
                 return info => factory.Create(info);
             });
