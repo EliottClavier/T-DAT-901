@@ -12,10 +12,10 @@ namespace Infrastructure.Scraper
 {
     public class CryptoScraperService : ICryptoScraperService
     {
-        private readonly ChromeDriver _driver;
+        private readonly IWebDriver _driver;
         private readonly ExchangeScrappingInfo _info;
 
-        public CryptoScraperService(ExchangeScrappingInfo info, ChromeDriver webDriver)
+        public CryptoScraperService(ExchangeScrappingInfo info, IWebDriver webDriver)
         {
             _info = info;
             _driver = webDriver;

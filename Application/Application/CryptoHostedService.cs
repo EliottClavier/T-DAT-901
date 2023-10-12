@@ -46,7 +46,7 @@ namespace Core
 
 
                     var jsonInfo = JsonConvert.SerializeObject(info);
-                    await _kafkaProducer.ProduceAsync("crypto-data", jsonInfo);
+                    //await _kafkaProducer.ProduceAsync(jsonInfo);
 
                 }
             }
