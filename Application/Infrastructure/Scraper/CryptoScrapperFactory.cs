@@ -10,16 +10,17 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using Infrastructure.WebDriver;
 using OpenQA.Selenium.Remote;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Scraper
 {
     public class CryptoScrapperFactory
     {
-       
+        private readonly ILogger _logger;
 
-        public CryptoScrapperFactory( ) {
+        public CryptoScrapperFactory( ILogger logger) {
         
-     
+        _logger = logger;
 
         }
 
@@ -27,17 +28,17 @@ namespace Infrastructure.Scraper
         {
             if (info != null)
             {
-                var driverFactory = new ChromWebDriverFactory();
+                var driverFactory = new ChromWebDriverFactory(_logger);
 
                 //if (Environment.GetEnvironmentVariable("RUNNING_IN_CONTAINER") == "true" || true)
                 //{
-                //    return new CryptoScraperService(info, driverFactory.CreateRemoteDriver());
+                //return new CryptoScraperService(info, driverFactory.CreateRemoteDriver());
                 //}
                 //else
                 //{
-                    return new CryptoScraperService(info, driverFactory.CreateDriver());
+                return new CryptoScraperService(info, driverFactory.CreateDriver());
                 //}
-               
+
             }
             else
             {

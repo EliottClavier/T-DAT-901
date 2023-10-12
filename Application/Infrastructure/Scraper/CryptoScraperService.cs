@@ -12,10 +12,10 @@ namespace Infrastructure.Scraper
 {
     public class CryptoScraperService : ICryptoScraperService
     {
-        private readonly IWebDriver _driver;
+        private readonly ChromeDriver _driver;
         private readonly ExchangeScrappingInfo _info;
 
-        public CryptoScraperService(ExchangeScrappingInfo info, IWebDriver webDriver)
+        public CryptoScraperService(ExchangeScrappingInfo info, ChromeDriver webDriver)
         {
             _info = info;
             _driver = webDriver;
@@ -27,10 +27,14 @@ namespace Infrastructure.Scraper
 
         private void NavigateToUrl()
         {
-            if (_driver.Url != _info.Url)
+            if (_driver?.Url != _info?.Url)
             {
-                _driver.Navigate().GoToUrl(_info.Url);
+                _driver?.Navigate().GoToUrl(_info.Url);
             }
+            //}else
+            //{
+            //    _driver?.Navigate().Refresh();
+            //}
         }
 
         public CryptoData? GetCryptoInfoAsync()

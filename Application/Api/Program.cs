@@ -4,7 +4,7 @@ using Infrastructure.Config;
 var builder = WebApplication.CreateBuilder(args);
 
 
-
+builder.Services.AddLogging();
 builder.Services.AddInfrastructure(builder.Configuration);  
 builder.Services.AddApplication(builder.Configuration);
 

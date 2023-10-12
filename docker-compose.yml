@@ -1,40 +1,32 @@
 version: '3'
+
+
+networks:
+    kafka-net:
+    producer-consumer-net:
+    influxdb-net:
+    grafana-net:
+    # web:
+    #   external: true
+    #   driver:  bridge
+      
 services:
-
-
 
   app:
     container_name: app
     build:
       context: ./Application
       dockerfile: Api/Dockerfile
-    restart: unless-stopped
+    restart: unless-stopped 
     ports:
-      - "80:80"
+      - "8080:80"
     networks:
       - kafka-net
-      - app-net
-      - web
     depends_on:
       - kafka
       - spark
-      - selenium
-      
-  selenium:
-    container_name: selenium
-    image: selenium/standalone-chrome:latest
-    hostname: selenium
-    volumes:
-      - /dev/shm:/dev/shm
-    ports:
-      - "5900:5900"
-      - "4444:4444"
-    networks:
-      - web
-      - app-net
-    privileged: true
-    shm_size: 2g
-          
+    
+    
   kafka:
     container_name: kafka
     image: confluentinc/cp-kafka:latest
@@ -97,15 +89,7 @@ services:
       - spark
       - influxdb
 
-networks:
-  app-net:
-  kafka-net:
-  producer-consumer-net:
-  influxdb-net:
-  grafana-net:
-  web:
-    external: true
-    driver:  bridge
+
 
 volumes:
   influxdb-data:
