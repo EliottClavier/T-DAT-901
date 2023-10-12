@@ -30,15 +30,8 @@ namespace Infrastructure.Scraper
             {
                 var driverFactory = new ChromWebDriverFactory(_logger);
 
-                //if (Environment.GetEnvironmentVariable("RUNNING_IN_CONTAINER") == "true" || true)
-                //{
-                //return new CryptoScraperService(info, driverFactory.CreateRemoteDriver());
-                //}
-                //else
-                //{
                 return new CryptoScraperService(info, driverFactory.CreateDriver());
-                //}
-
+     
             }
             else
             {
