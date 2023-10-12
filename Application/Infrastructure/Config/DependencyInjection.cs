@@ -15,7 +15,7 @@ namespace Infrastructure.Config
     {
             public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
             {
-                services.AddSingleton(new KafkaProducerService("localhost:9092"));
+                services.AddSingleton(new KafkaProducerService("kafka:9092"));
 
             services.AddSingleton<Func<ExchangeScrappingInfo, ICryptoScraperService>>(provider =>
             {
