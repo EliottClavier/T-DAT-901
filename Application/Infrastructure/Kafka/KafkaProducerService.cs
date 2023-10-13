@@ -22,7 +22,7 @@ public class KafkaProducerService
         _config = new ProducerConfig { BootstrapServers = _bootstrapServers };
     }
 
-    public async Task ProduceAsync(string message, string? topic)
+    public async Task ProduceAsync(string message, string? topic = null)
     {
         try
         {
