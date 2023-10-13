@@ -7,6 +7,7 @@ using OpenQA.Selenium.Support.UI;
 using OpenQA.Selenium;
 using Domain.Domain;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace Infrastructure.Scraper
 {
@@ -82,12 +83,43 @@ namespace Infrastructure.Scraper
 
         private static string CleanVolume(string value)
         {
-            var match = Regex.Match(value, @"\$(\d+(?:,\d{3})*)");
-            if (match.Success)
-                return match.Groups[1].Value.Replace(",", string.Empty).Trim();
+            // Gère le cas des abréviations (M pour millions, B pour milliards, etc.)
+            var abbreviationMatch = Regex.Match(value, @"\$(\d+(\.\d+)?)([MBK])", RegexOptions.IgnoreCase);
+            if (abbreviationMatch.Success)
+            {
+                var numberValue = decimal.Parse(abbreviationMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+                var abbreviation = abbreviationMatch.Groups[3].Value.ToUpper();
+
+                switch (abbreviation)
+                {
+                    case "K":
+                        numberValue *= 1_000; // Multiplie par mille pour les milliers
+                        break;
+                    case "M":
+                        numberValue *= 1_000_000; // Multiplie par un million pour les millions
+                        break;
+                    case "B":
+                        numberValue *= 1_000_000_000; // Multiplie par un milliard pour les milliards
+                        break;
+                }
+
+                return numberValue.ToString("0");
+            }
+
+            // Gère le cas où la valeur est en format standard (par exemple, "$5,221,833,130")
+            var standardMatch = Regex.Match(value, @"\$(\d+(?:,\d{3})*)");
+            if (standardMatch.Success)
+                return standardMatch.Groups[1].Value.Replace(",", string.Empty).Trim();
+
+            // Gère le cas où la valeur est un nombre simple ou précédé par un symbole du dollar
+            var simpleNumberMatch = Regex.Match(value, @"^\$?(\d+)$");
+            if (simpleNumberMatch.Success)
+                return simpleNumberMatch.Groups[1].Value.Trim();
 
             return value;
         }
+
+
 
         public void Dispose()
         {
