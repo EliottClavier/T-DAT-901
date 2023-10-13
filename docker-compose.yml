@@ -19,7 +19,10 @@ services:
       dockerfile: Api/Dockerfile
     restart: unless-stopped 
     ports:
-      - "8080:80"
+      - "8081:80"
+    environment:
+      - KAFKA__BOOTSTRAP_SERVERS=${KAFKA__BOOTSTRAP_SERVERS}
+      - KAFKA__DEFAULT_TOPIC=${KAFKA__DEFAULT_TOPIC}     
     networks:
       - kafka-net
     depends_on:

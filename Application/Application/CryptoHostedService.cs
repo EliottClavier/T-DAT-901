@@ -4,6 +4,7 @@ using Infrastructure.Kafka;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Collections;
 
 namespace Core
 {
@@ -13,7 +14,7 @@ namespace Core
         private readonly List<ICryptoScraperService> _scraperServices;
         private readonly KafkaProducerService _kafkaProducer;
         private readonly ILogger<CryptoHostedService> _logger;
-      
+
 
         public CryptoHostedService(
             KafkaProducerService kafkaProducer,
@@ -31,22 +32,24 @@ namespace Core
             _scraperServices = new List<ICryptoScraperService>();
             foreach (var crypto in cryptoList)
             {
-                _scraperServices.Add( serviceFactory(crypto));
+                _scraperServices.Add(serviceFactory(crypto));
             };
         }
 
-        private void FetchCryptoInfo(ICryptoScraperService service)
+        private async void FetchCryptoInfo(ICryptoScraperService service)
         {
             try
             {
                 {
                     var info = service.GetCryptoInfoAsync();
+                 
+                    _logger.LogInformation(
+              $"Exchange: {info?.ExchangeName}, Name: {info?.CurrencyName}, Price: {info?.Price}, 24h Volume: {info?.Volume24H} Supply: {info?.CirculatingSupply} TimeStamp: {info?.TimeStamp}");
+
 
                     var jsonInfo = JsonConvert.SerializeObject(info);
-                    //await _kafkaProducer.ProduceAsync("bitcoin-infos", jsonInfo);
+                    //await _kafkaProducer.ProduceAsync(jsonInfo);
 
-                    _logger.LogInformation(
-                       $"Exchange: {info?.ExchangeName}, Name: {info?.CurrencyName}, Price: {info?.Price}, 24h Volume: {info?.Volume24H} Supply: {info?.CirculatingSupply} TimeStamp: {info?.TimeStamp}");
                 }
             }
             catch (Exception ex)

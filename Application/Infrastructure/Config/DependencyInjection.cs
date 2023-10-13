@@ -13,9 +13,12 @@ namespace Infrastructure.Config
 {
     public static class DependencyInjection
     {
-            public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
-            {
-                services.AddSingleton(new KafkaProducerService("localhost:9092"));
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+        {
+
+            services.Configure<KafkaSettings>(configuration.GetSection("KAFKA"));
+
+            services.AddSingleton<KafkaProducerService>();
 
             services.AddSingleton<Func<ExchangeScrappingInfo, ICryptoScraperService>>(provider =>
             {
@@ -28,7 +31,7 @@ namespace Infrastructure.Config
 
 
             return services;
-            }
+        }
 
     }
 }
