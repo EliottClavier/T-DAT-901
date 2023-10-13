@@ -4,6 +4,7 @@ using Infrastructure.Kafka;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Collections;
 
 namespace Core
 {
@@ -41,6 +42,7 @@ namespace Core
             {
                 {
                     var info = service.GetCryptoInfoAsync();
+                 
                     _logger.LogInformation(
               $"Exchange: {info?.ExchangeName}, Name: {info?.CurrencyName}, Price: {info?.Price}, 24h Volume: {info?.Volume24H} Supply: {info?.CirculatingSupply} TimeStamp: {info?.TimeStamp}");
 
