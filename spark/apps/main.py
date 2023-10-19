@@ -16,13 +16,15 @@ def stylized_log(message):
 
 
 def main():
+
+
     spark = SparkSession.builder \
         .appName("KafkaPySparkStreaming") \
         .getOrCreate()
 
     raw_stream = spark.readStream \
         .format("kafka") \
-        .option("kafka.bootstrap.servers", "kafka:9092") \
+        .option("kafka.bootstrap.servers", "10.6.0.5:9092") \
         .option("subscribe", "crypto_topic") \
         .load()
 
