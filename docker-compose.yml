@@ -9,6 +9,9 @@ services:
     restart: unless-stopped
     depends_on:
       - kafka
+    ports:
+      - "80:80"
+      - "443:443"
     environment:
       KAFKA__BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}	
       KAFKA__DEFAULT_TOPIC: ${KAFKA__DEFAULT_TOPIC}
@@ -24,6 +27,7 @@ services:
       ALLOW_ANONYMOUS_LOGIN: yes
     networks:
       producer-net:
+        ipv4_address: ${PRODUCER_RANGE}3
 
   kafka:
     container_name: kafka
@@ -45,37 +49,41 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
     networks:
       producer-net:
+        ipv4_address: ${PRODUCER_RANGE}2
       consumer-net:
-          ipv4_address: 10.6.0.5
+        ipv4_address: ${CONSUMER_RANGE}5
 
   spark-master:
     container_name: spark-master
     image: bitnami/spark:latest
     command: bin/spark-class org.apache.spark.deploy.master.Master
+    expose:
+      - "${SPARK_MASTER_PORT}"
     ports:
-      - "${SPARK_MASTER_PORT}:${SPARK_MASTER_PORT}"
       - "${SPARK_MASTER_WEBUI_PORT}:${SPARK_MASTER_WEBUI_PORT}"
     environment:
       SPARK_RPC_AUTHENTICATION_ENABLED: no
       SPARK_RPC_ENCRYPTION_ENABLED: no
       SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: no
       SPARK_SSL_ENABLED: no
-      SPARK_MASTER_HOST: 10.6.0.4
+      SPARK_MASTER_HOST: ${CONSUMER_RANGE}4
+      KAFKA_BOOTSTRAP_SERVERS: ${CONSUMER_RANGE}5:${KAFKA_PORT}
+      KAFKA_DEFAULT_TOPIC: ${KAFKA__DEFAULT_TOPIC}
 
     networks:
       consumer-net:
-        ipv4_address: 10.6.0.4
+        ipv4_address: ${CONSUMER_RANGE}4
 
   spark-worker:
     image: bitnami/spark:latest
-    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://10.6.0.4:7077
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://${CONSUMER_RANGE}4:${SPARK_MASTER_PORT}
     depends_on:
       - spark-master
     environment:
       SPARK_MODE: worker
       SPARK_WORKER_CORES: 2
       SPARK_WORKER_MEMORY: 2g
-      SPARK_MASTER_URL: spark://10.6.0.4:7077
+      SPARK_MASTER_URL: spark://${CONSUMER_RANGE}4:${SPARK_MASTER_PORT}
     networks:
       consumer-net:
 
@@ -119,24 +127,21 @@ services:
 networks:
   influxdb-net:
   grafana-net:
-  consumer-net:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 10.6.0.0/16
-          gateway: 10.6.0.1
   producer-net:
     driver: bridge
     ipam:
       driver: default
       config:
-        - subnet: 10.5.0.0/16
-          ip_range: 10.5.0.0/24
-          gateway: 10.5.0.1
-          aux_addresses:
-            kafka: 10.5.0.2
-            zookeeper: 10.5.0.3
+        - subnet: ${PRODUCER_RANGE}0/16
+          ip_range: ${PRODUCER_RANGE}0/24
+          gateway: ${PRODUCER_RANGE}1
+  consumer-net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${CONSUMER_RANGE}0/16
+          gateway: ${CONSUMER_RANGE}1
 
 volumes:
   influxdb-data:
