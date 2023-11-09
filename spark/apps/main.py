@@ -1,5 +1,8 @@
-from pyspark.sql import SparkSession
+import os
 import logging
+
+from pyspark.sql import SparkSession
+
 
 # Configuration de logging pour styliser la sortie
 logger = logging.getLogger("kafka-messages")
@@ -16,16 +19,14 @@ def stylized_log(message):
 
 
 def main():
-
-
     spark = SparkSession.builder \
         .appName("KafkaPySparkStreaming") \
         .getOrCreate()
 
     raw_stream = spark.readStream \
         .format("kafka") \
-        .option("kafka.bootstrap.servers", "10.6.0.5:9092") \
-        .option("subscribe", "crypto_topic") \
+        .option("kafka.bootstrap.servers", os.environ["KAFKA_BOOTSTRAP_SERVERS"]) \
+        .option("subscribe", os.environ["KAFKA_DEFAULT_TOPIC"]) \
         .load()
 
     string_stream = raw_stream.selectExpr("CAST(value AS STRING) as value")
