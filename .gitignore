@@ -5,3 +5,15 @@
 .env
 env/*
 !env/*.example.*
+/Application/Application/bin/Debug/net6.0
+/Application/Core/bin/Debug/net6.0
+*.exe
+/Application/Domain/bin/Debug/net6.0
+/Application/Api/bin/Debug/net6.0
+/Application/Infrastructure/bin/Debug/net6.0
+/Application/Console/bin/Debug/net6.0
+/.vs
+/Application/Api/bin/Release/net6.0
+/Application/Application/bin/Release/net6.0
+/Application/Domain/bin/Release/net6.0
+/Application/Infrastructure/bin/Release/net6.0

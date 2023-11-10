@@ -1,18 +1,35 @@
 version: '3'
+
+
+networks:
+    kafka-net:
+    producer-consumer-net:
+    influxdb-net:
+    grafana-net:
+    # web:
+    #   external: true
+    #   driver:  bridge
+      
 services:
+
   app:
     container_name: app
     build:
       context: ./Application
-    restart: unless-stopped
+      dockerfile: Api/Dockerfile
+    restart: unless-stopped 
     ports:
-      - "80:80"
+      - "8081:80"
+    environment:
+      - KAFKA__BOOTSTRAP_SERVERS=${KAFKA__BOOTSTRAP_SERVERS}
+      - KAFKA__DEFAULT_TOPIC=${KAFKA__DEFAULT_TOPIC}     
     networks:
       - kafka-net
     depends_on:
       - kafka
       - spark
-
+    
+    
   kafka:
     container_name: kafka
     image: confluentinc/cp-kafka:latest
@@ -75,11 +92,7 @@ services:
       - spark
       - influxdb
 
-networks:
-  kafka-net:
-  producer-consumer-net:
-  influxdb-net:
-  grafana-net:
+
 
 volumes:
   influxdb-data:

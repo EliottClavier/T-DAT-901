@@ -1,3 +1,9 @@
 .vs
+.vs/
+vs/*
+**/obj/
+**/.vs/
+
 .idea
 .vscode
+
