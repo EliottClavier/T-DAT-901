@@ -22,7 +22,7 @@ services:
     container_name: zookeeper
     image: "bitnami/zookeeper:latest"
     expose:
-      - "${ZOOKEEPER_CLIENT_PORT}"
+      - "${ZOOKEEPER_PORT}"
     environment:
       ALLOW_ANONYMOUS_LOGIN: yes
     networks:
@@ -40,7 +40,7 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_LISTENERS: ${KAFKA_LISTENERS}
       KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_CLIENT_PORT}
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_PORT}
       ALLOW_PLAINTEXT_LISTENER: yes
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -55,8 +55,8 @@ services:
 
   spark-master:
     container_name: spark-master
-    image: bitnami/spark:latest
-    command: bin/spark-class org.apache.spark.deploy.master.Master
+    build:
+      context: ./spark
     expose:
       - "${SPARK_MASTER_PORT}"
     ports:
@@ -69,10 +69,15 @@ services:
       SPARK_MASTER_HOST: ${CONSUMER_RANGE}4
       KAFKA_BOOTSTRAP_SERVERS: ${CONSUMER_RANGE}5:${KAFKA_PORT}
       KAFKA_DEFAULT_TOPIC: ${KAFKA__DEFAULT_TOPIC}
-
+      INFLUXDB_HOST: influxdb
+      INFLUXDB_PORT: ${INFLUXDB_PORT}
+      INFLUXDB_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
+      INFLUXDB_ORG: ${INFLUXDB_ORG}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
     networks:
       consumer-net:
         ipv4_address: ${CONSUMER_RANGE}4
+      influxdb-net:
 
   spark-worker:
     image: bitnami/spark:latest
@@ -94,16 +99,20 @@ services:
     depends_on:
       - kafka
     environment:
-      INFLUXDB_DB: ${INFLUXDB_DB}
-      INFLUXDB_ADMIN_USER: ${INFLUXDB_USER}
-      INFLUXDB_ADMIN_PASSWORD: ${INFLUXDB_PASSWORD}
-    expose:
-      - "${INFLUXDB_PORT}"
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_USER}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_BUCKET}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
+      # DOCKER_INFLUXDB_INIT_RETENTION: 1h
+    ports:
+      - "${INFLUXDB_PORT}:${INFLUXDB_PORT}"
     volumes:
-      - influxdb-data:/var/lib/influxdb
+      - influxdb-data:/var/lib/influxdb2
     networks:
-      - influxdb-net
-      - grafana-net
+      influxdb-net:
+      grafana-net:
 
   grafana:
     container_name: grafana
@@ -120,7 +129,6 @@ services:
       - "${GRAFANA_PORT}:${GRAFANA_PORT}"
     volumes:
       - grafana-data:/var/lib/grafana
-      - ./grafana-provisioning/:/etc/grafana/provisioning
     networks:
       - grafana-net
 

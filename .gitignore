@@ -5,6 +5,7 @@
 .env
 env/*
 !env/*.example.*
+
 /Application/Application/bin/Debug/net6.0
 /Application/Core/bin/Debug/net6.0
 *.exe
