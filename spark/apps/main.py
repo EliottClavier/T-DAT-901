@@ -54,17 +54,18 @@ class SparkStreaming:
             # String to timestamp
             row["TimeStamp"] = datetime.datetime.fromtimestamp(int(row["TimeStamp"]))
 
-            point = (Point(self.measurement)
-                     .time(row["TimeStamp"])
-                     .tag("CurrencyName", row["CurrencyName"])
-                     .field("CurrencyPair", row["CurrencyPair"])
-                     .field("CurrencySymbol", row["CurrencySymbol"])
-                     .field("ExchangeName", row["ExchangeName"])
-                     .field("Price", row["Price"])
-                     .field("Volume24H", row["Volume24H"])
-                     .field("CirculatingSupply", row["CirculatingSupply"])
-                     .field("Liquidity", row["Liquidity"])
-                 )
+            point = (
+                Point(self.measurement)
+                .time(row["TimeStamp"])
+                .tag("CurrencyName", row["CurrencyName"])
+                .field("CurrencyPair", row["CurrencyPair"])
+                .field("CurrencySymbol", row["CurrencySymbol"])
+                .field("ExchangeName", row["ExchangeName"])
+                .field("Price", row["Price"])
+                .field("Volume24H", row["Volume24H"])
+                .field("CirculatingSupply", row["CirculatingSupply"])
+                .field("Liquidity", row["Liquidity"])
+            )
 
             write_api.write(bucket=os.environ["INFLUXDB_BUCKET"], org=os.environ["INFLUXDB_ORG"], record=point)
 
@@ -73,17 +74,22 @@ def main():
 
     def foreach_batch_function(df, epoch_id):
         # Transform value into df with all columns in string json of value
-        pandas_df = df.withColumn("value", df["value"].cast("string"))
-        pandas_df = pandas_df.selectExpr("CAST(value AS STRING) as value")
-        pandas_df = pandas_df.selectExpr("from_json(value, 'CurrencyName STRING, CurrencyPair STRING, CurrencySymbol STRING, ExchangeName STRING, Price STRING, Volume24H STRING, CirculatingSupply STRING, Liquidity STRING, TimeStamp STRING') AS value")
-        pandas_df = pandas_df.select("value.*")
+        df = df.withColumn("value", df["value"].cast("string"))
+        df = df.selectExpr("CAST(value AS STRING) as value")
+        df = df.selectExpr("from_json(value, 'CurrencyName STRING, CurrencyPair STRING, CurrencySymbol STRING, ExchangeName STRING, Price STRING, Volume24H STRING, CirculatingSupply STRING, Liquidity STRING, TimeStamp STRING') AS value")
+
+        # Transform Price, Volume24H, CirculatingSupply, Liquidity into float
+        df = df.withColumn("Price", df["value.Price"].cast("float"))
+        df = df.withColumn("Volume24H", df["value.Volume24H"].cast("float"))
+        df = df.withColumn("CirculatingSupply", df["value.CirculatingSupply"].cast("float"))
+        df = df.withColumn("Liquidity", df["value.Liquidity"].cast("float"))
+        df = df.select("value.*")
 
         # To pandas df
-        pandas_df = pandas_df.toPandas()
+        pandas_df = df.toPandas()
 
         # Write to InfluxDB
         spark_streaming.write_to_influxdb(pandas_df)
-
 
     query = spark_streaming.string_stream.writeStream.foreachBatch(foreach_batch_function).outputMode("append").start()
 
