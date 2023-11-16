@@ -18,3 +18,6 @@ env/*
 /Application/Application/bin/Release/net6.0
 /Application/Domain/bin/Release/net6.0
 /Application/Infrastructure/bin/Release/net6.0
+
+grafana-data/**
+!grafana-data/grafana.db

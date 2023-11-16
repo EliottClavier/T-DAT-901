@@ -2,6 +2,8 @@
 
 source ./env/.env
 
+mkdir -p "grafana-data"
+
 sh ./stop_app.sh &&
 docker-compose --env-file ./env/.env up -d && 
 docker cp -L ./spark/apps/main.py spark-master:/opt/bitnami/spark/main.py && 
