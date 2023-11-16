@@ -3,6 +3,7 @@ import os
 import logging
 
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, struct
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
@@ -50,9 +51,12 @@ class SparkStreaming:
         write_api = client.write_api(write_options=SYNCHRONOUS)
 
         for index, row in pandas_df.iterrows():
+            print(row)
+            print(row)
+            print(row)
 
             # String to timestamp
-            row["TimeStamp"] = datetime.datetime.fromtimestamp(int(row["TimeStamp"]))
+            row["TimeStamp"] = datetime.datetime.fromtimestamp(row["TimeStamp"])
 
             point = (
                 Point(self.measurement)
@@ -63,7 +67,7 @@ class SparkStreaming:
                 .field("ExchangeName", row["ExchangeName"])
                 .field("Price", row["Price"])
                 .field("Volume24H", row["Volume24H"])
-                .field("CirculatingSupply", row["CirculatingSupply"])
+                #.field("CirculatingSupply", row["CirculatingSupply"])
                 .field("Liquidity", row["Liquidity"])
             )
 
@@ -79,10 +83,18 @@ def main():
         df = df.selectExpr("from_json(value, 'CurrencyName STRING, CurrencyPair STRING, CurrencySymbol STRING, ExchangeName STRING, Price STRING, Volume24H STRING, CirculatingSupply STRING, Liquidity STRING, TimeStamp STRING') AS value")
 
         # Transform Price, Volume24H, CirculatingSupply, Liquidity into float
-        df = df.withColumn("Price", df["value.Price"].cast("float"))
-        df = df.withColumn("Volume24H", df["value.Volume24H"].cast("float"))
-        df = df.withColumn("CirculatingSupply", df["value.CirculatingSupply"].cast("float"))
-        df = df.withColumn("Liquidity", df["value.Liquidity"].cast("float"))
+        df = df.withColumn("value", struct(
+            "value.CurrencyName",
+            "value.CurrencyPair",
+            "value.CurrencySymbol",
+            "value.ExchangeName",
+            col("value.Price").cast("float").alias("Price"),
+            col("value.Volume24H").cast("int").alias("Volume24H"),
+            #col("value.CirculatingSupply").cast("int").alias("CirculatingSupply"),
+            col("value.Liquidity").cast("int").alias("Liquidity"),
+            col("value.TimeStamp").cast("int").alias("TimeStamp")
+        ))
+
         df = df.select("value.*")
 
         # To pandas df

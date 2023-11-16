@@ -130,7 +130,7 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
     networks:
-      - grafana-net
+      grafana-net:
 
 networks:
   influxdb-net:
