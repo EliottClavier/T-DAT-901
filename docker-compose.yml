@@ -57,6 +57,11 @@ services:
     container_name: spark-master
     build:
       context: ./spark
+    depends_on:
+      - app
+      - zookeeper
+      - kafka
+      - influxdb
     expose:
       - "${SPARK_MASTER_PORT}"
     ports:

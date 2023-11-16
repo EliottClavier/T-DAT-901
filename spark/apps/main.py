@@ -51,10 +51,6 @@ class SparkStreaming:
         write_api = client.write_api(write_options=SYNCHRONOUS)
 
         for index, row in pandas_df.iterrows():
-            print(row)
-            print(row)
-            print(row)
-
             # String to timestamp
             row["TimeStamp"] = datetime.datetime.fromtimestamp(row["TimeStamp"])
 
