@@ -57,6 +57,11 @@ services:
     container_name: spark-master
     build:
       context: ./spark
+    depends_on:
+      - app
+      - zookeeper
+      - kafka
+      - influxdb
     expose:
       - "${SPARK_MASTER_PORT}"
     ports:
@@ -110,6 +115,7 @@ services:
       - "${INFLUXDB_PORT}:${INFLUXDB_PORT}"
     volumes:
       - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
     networks:
       influxdb-net:
       grafana-net:
@@ -128,9 +134,9 @@ services:
     ports:
       - "${GRAFANA_PORT}:${GRAFANA_PORT}"
     volumes:
-      - grafana-data:/var/lib/grafana
+      - ./grafana-data:/var/lib/grafana
     networks:
-      - grafana-net
+      grafana-net:
 
 networks:
   influxdb-net:
@@ -153,4 +159,5 @@ networks:
 
 volumes:
   influxdb-data:
+  influxdb-config:
   grafana-data:
