@@ -51,6 +51,8 @@ class SparkStreaming:
         write_api = client.write_api(write_options=SYNCHRONOUS)
 
         for index, row in pandas_df.iterrows():
+
+            logging.info(row)
             # String to timestamp
             row["TimeStamp"] = datetime.datetime.fromtimestamp(row["TimeStamp"])
 
@@ -84,8 +86,8 @@ def main():
             "value.CurrencyPair",
             "value.CurrencySymbol",
             "value.ExchangeName",
-            col("value.Price").cast("float").alias("Price"),
-            col("value.Volume24H").cast("int").alias("Volume24H"),
+            col("value.Price").cast("double").alias("Price"),
+            col("value.Volume24H").cast("long").alias("Volume24H"),
             #col("value.CirculatingSupply").cast("int").alias("CirculatingSupply"),
             col("value.Liquidity").cast("int").alias("Liquidity"),
             col("value.TimeStamp").cast("int").alias("TimeStamp")

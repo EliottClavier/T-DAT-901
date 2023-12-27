@@ -79,6 +79,8 @@ services:
       INFLUXDB_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
       INFLUXDB_ORG: ${INFLUXDB_ORG}
       INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+    volumes:
+      - ./spark-data:/opt/spark/parquet
     networks:
       consumer-net:
         ipv4_address: ${CONSUMER_RANGE}4
@@ -161,3 +163,4 @@ volumes:
   influxdb-data:
   influxdb-config:
   grafana-data:
+  spark-data:
