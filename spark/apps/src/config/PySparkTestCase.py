@@ -1,3 +1,4 @@
+import os
 import unittest
 from unittest import mock
 from pyspark.sql import SparkSession
@@ -22,3 +23,9 @@ class PySparkTestCase(unittest.TestCase):
     def tearDownClass(cls):
         cls.spark.stop()
         cls.mock_cfg.stop()
+
+    @staticmethod
+    def clean_input_directory(path):
+        for file in os.listdir(path):
+            if not file.startswith("inputRaw"):
+                os.remove(f'{path}/{file}')

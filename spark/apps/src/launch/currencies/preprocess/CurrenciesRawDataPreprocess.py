@@ -13,6 +13,7 @@ class CurrenciesRawDataPreprocess(SparkSessionCustom):
         super().__init__()
         self.raw_stream = self.read_from_kafka()
         self.dhi_timestamp = datetime.datetime.now().timestamp()
+        self.raw_stream.foreachPartition(self.transform(self.raw_stream, self.dhi_timestamp))
 
     def read_from_kafka(self):
         return self.spark.readStream \
@@ -23,12 +24,11 @@ class CurrenciesRawDataPreprocess(SparkSessionCustom):
 
     @staticmethod
     def write_to_parquet(df):
-        df.writeStream \
+        df.write \
             .format("parquet") \
-            .option("path", os.environ["PARQUET_PATH"]) \
             .option("checkpointLocation", os.environ["PARQUET_CHECKPOINT_LOCATION"]) \
-            .start() \
-            .awaitTermination()
+            .mode("append") \
+            .save(os.environ["PARQUET_PATH"])
 
     @staticmethod
     def transform(input_df, dhi_timestamp):
@@ -42,6 +42,4 @@ class CurrenciesRawDataPreprocess(SparkSessionCustom):
         raw_stream_df \
             .withColumn("dhi", lit(dhi_timestamp))
 
-        # CurrenciesRawDataPreprocess.write_to_parquet(raw_stream_df)
-
-        return raw_stream_df
+        CurrenciesRawDataPreprocess.write_to_parquet(raw_stream_df)
