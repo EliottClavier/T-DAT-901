@@ -67,8 +67,10 @@ namespace Infrastructure.Scraper
         {
             var match = Regex.Match(value, @"\$(\d+(?:,\d{3})*(?:\.\d+)?)");
             if (match.Success)
-                return match.Groups[1].Value.Replace(",", string.Empty).Trim();
-
+            {
+                var res = match.Groups[1].Value.Replace(",", string.Empty).Trim();
+                 return res;
+            }
             return value; 
         }
 
