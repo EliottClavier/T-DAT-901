@@ -2,6 +2,7 @@
 using Domain;
 using Infrastructure.Kafka;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
@@ -21,17 +22,21 @@ namespace Infrastructure.Socket
         private string _kafkaTopic;
         public event TradeReceivedHandler OnTradeReceived;
         private readonly WebSocketConfig _webSocketConfig;
+        private readonly ILogger<WebSocketStreamer> _logger;
 
         private DataTradeConfig _config;
 
         public WebSocketStreamer(
             KafkaProducerService kafkaProducerService,
             WebSocketConfig webSocketConfig,
-            IOptions<KafkaSettings> kafkaSettings)
+            IOptions<KafkaSettings> kafkaSettings,
+            ILogger<WebSocketStreamer> logger
+            )
         {
             _producer = kafkaProducerService;
             _webSocketConfig = webSocketConfig;
             _kafkaTopic = kafkaSettings.Value.TransactionTopic;
+            _logger = logger;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -39,14 +44,14 @@ namespace Infrastructure.Socket
             StartStreamingAsync(new DataTradeConfig("Binance"));
 
             OnTradeReceived += OnTradeReceivedHandler;
-      
+
 
             return Task.CompletedTask;
         }
 
         private void OnTradeReceivedHandler(CryptoTrade trade)
-        {           
-           _producer.Produce(trade.ToJson(), _kafkaTopic);         
+        {
+            _producer.Produce(trade.ToJson(), _kafkaTopic);
         }
 
         public async Task StartStreamingAsync(DataTradeConfig config)
@@ -56,19 +61,17 @@ namespace Infrastructure.Socket
             {
                 try
                 {
-               
-                        _webSocket = new ClientWebSocket();        
-                     
-                   
-                        await _webSocket.ConnectAsync(_webSocketConfig.GetCompletedUri(), CancellationToken.None);
-                    Console.WriteLine("_webSocketConfig.GetCompletedUri() : " + _webSocketConfig.GetCompletedUri());
-                        await ListenToWebSocketAsync();
-                    
+                    _webSocket = new ClientWebSocket();
+
+                    await _webSocket.ConnectAsync(_webSocketConfig.GetCompletedUri(), CancellationToken.None);
+                    _logger.LogInformation("_webSocketConfig.GetCompletedUri() : " + _webSocketConfig.GetCompletedUri());
+                    await ListenToWebSocketAsync();
+
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"WebSocket Exception: {e.Message}");
-                    await Task.Delay(5000); // Attendre avant de retenter la connexion
+                    _logger.LogInformation($"WebSocket Exception: {e.Message}");
+                    await Task.Delay(5000); 
                 }
             }
         }
@@ -85,7 +88,7 @@ namespace Infrastructure.Socket
 
                 OnTradeReceived?.Invoke(trade);
 
-                Console.WriteLine($"Received: {trade.ToJson()}");               
+                _logger.LogInformation($"Received: {trade.ToJson()}");
             }
         }
 
