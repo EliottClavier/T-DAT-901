@@ -2,6 +2,7 @@
 using Domain;
 using Infrastructure.Kafka;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -17,16 +18,20 @@ namespace Infrastructure.Socket
     {
         private ClientWebSocket _webSocket = new ClientWebSocket();
         private readonly KafkaProducerService _producer;
-        private readonly string _kafkaTopic = "crypto-transactions";
+        private string _kafkaTopic;
         public event TradeReceivedHandler OnTradeReceived;
         private readonly WebSocketConfig _webSocketConfig;
 
         private DataTradeConfig _config;
 
-        public WebSocketStreamer(KafkaProducerService kafkaProducerService, WebSocketConfig webSocketConfig)
+        public WebSocketStreamer(
+            KafkaProducerService kafkaProducerService,
+            WebSocketConfig webSocketConfig,
+            IOptions<KafkaSettings> kafkaSettings)
         {
             _producer = kafkaProducerService;
             _webSocketConfig = webSocketConfig;
+            _kafkaTopic = kafkaSettings.Value.TransactionTopic;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -41,7 +46,7 @@ namespace Infrastructure.Socket
 
         private void OnTradeReceivedHandler(CryptoTrade trade)
         {           
-           //_producer.Produce(_kafkaTopic, trade.ToJson());         
+           _producer.Produce(trade.ToJson(), _kafkaTopic);         
         }
 
         public async Task StartStreamingAsync(DataTradeConfig config)

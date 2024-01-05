@@ -1,11 +1,7 @@
 ﻿using Domain;
 using Domain.Ports;
-using Microsoft.Extensions.Logging;
-
-using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 using OpenQA.Selenium;
-using Domain.Domain;
 using System.Text.RegularExpressions;
 using System.Globalization;
 

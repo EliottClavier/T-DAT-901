@@ -1,7 +1,6 @@
 ﻿using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using static Confluent.Kafka.ConfigPropertyNames;
 
 namespace Infrastructure.Kafka;
 
@@ -19,6 +18,7 @@ public class KafkaProducerService : IDisposable
         _logger.LogInformation("KafkaProducerService");
         _logger.LogInformation(kafkaSettings.Value.BootstrapServers);
         _logger.LogInformation(kafkaSettings.Value.DefaultTopic);
+        _logger.LogInformation(kafkaSettings.Value.TransactionTopic);
         _bootstrapServers = kafkaSettings.Value.BootstrapServers;
         _topic = kafkaSettings.Value.DefaultTopic;
         _config = new ProducerConfig { BootstrapServers = _bootstrapServers };
