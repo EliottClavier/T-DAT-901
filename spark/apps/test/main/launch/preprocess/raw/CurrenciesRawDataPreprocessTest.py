@@ -17,18 +17,24 @@ class CurrenciesRawDataPreprocessTest(PySparkTestCase):
             ("tu3", "Multliples lines to add"),
         ]
 
-        for name, title in test_list:
-            test_root_path = f'../../../../ressources/preprocess/currencies/raw/{name}'
+        directories = [
+            "../../../../ressources/preprocess/currencies/raw",
+            "../../../../ressources/preprocess/exchanges/raw",
+        ]
 
-            input_df = self.spark.read.format("json").load(f'{test_root_path}/currencies.json')
+        for directory in directories:
+            for name, title in test_list:
+                test_root_path = f'{directory}/{name}'
 
-            mock.patch.dict(os.environ, {"PARQUET_PATH": f'{test_root_path}/inputRaw'}).start()
-            CurrenciesRawDataPreprocess.transform(input_df, datetime.datetime.now().timestamp())
+                input_df = self.spark.read.format("json").load(f'{test_root_path}/currencies.json')
 
-            actual = self.spark.read.parquet(f'{test_root_path}/inputRaw')
+                mock.patch.dict(os.environ, {"PARQUET_PATH": f'{test_root_path}/inputRaw'}).start()
+                CurrenciesRawDataPreprocess.transform(input_df, datetime.datetime.now().timestamp())
 
-            expected = self.spark.read.parquet(f'{test_root_path}/expected')
+                actual = self.spark.read.parquet(f'{test_root_path}/inputRaw')
 
-            assertDataFrameEqual(actual, expected)
-            mock.patch.dict(os.environ, {"PARQUET_PATH": ""}).stop()
-            PySparkTestCase.clean_input_directory(f'{test_root_path}/inputRaw')
+                expected = self.spark.read.parquet(f'{test_root_path}/expected')
+
+                assertDataFrameEqual(actual, expected)
+                mock.patch.dict(os.environ, {"PARQUET_PATH": ""}).stop()
+                PySparkTestCase.clean_input_directory(f'{test_root_path}/inputRaw')
