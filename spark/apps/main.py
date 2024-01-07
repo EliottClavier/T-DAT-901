@@ -14,8 +14,8 @@ handler.setFormatter(logging.Formatter('%(message)s'))
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-class SparkStreaming:
 
+class SparkStreaming:
     # Spark
     spark: SparkSession = None
     raw_stream = None
@@ -26,7 +26,6 @@ class SparkStreaming:
     measurement = "CryptoCurrency"
 
     def __init__(self):
-
         # Initialize Spark
         self.spark = SparkSession.builder \
             .appName("KafkaPySparkStreaming") \
@@ -41,7 +40,6 @@ class SparkStreaming:
         self.string_stream = self.raw_stream.selectExpr("CAST(value AS STRING) as value")
 
     def write_to_influxdb(self, pandas_df):
-
         client = InfluxDBClient(
             url=f"http://{os.environ['INFLUXDB_HOST']}:{os.environ['INFLUXDB_PORT']}",
             token=os.environ["INFLUXDB_ADMIN_TOKEN"],
@@ -65,11 +63,12 @@ class SparkStreaming:
                 .field("ExchangeName", row["ExchangeName"])
                 .field("Price", row["Price"])
                 .field("Volume24H", row["Volume24H"])
-                #.field("CirculatingSupply", row["CirculatingSupply"])
+                # .field("CirculatingSupply", row["CirculatingSupply"])
                 .field("Liquidity", row["Liquidity"])
             )
 
             write_api.write(bucket=os.environ["INFLUXDB_BUCKET"], org=os.environ["INFLUXDB_ORG"], record=point)
+
 
 def main():
     spark_streaming = SparkStreaming()
@@ -78,7 +77,9 @@ def main():
         # Transform value into df with all columns in string json of value
         df = df.withColumn("value", df["value"].cast("string"))
         df = df.selectExpr("CAST(value AS STRING) as value")
-        df = df.selectExpr("from_json(value, 'CurrencyName STRING, CurrencyPair STRING, CurrencySymbol STRING, ExchangeName STRING, Price STRING, Volume24H STRING, CirculatingSupply STRING, Liquidity STRING, TimeStamp STRING') AS value")
+        df = df.selectExpr(
+            "from_json(value, 'CurrencyName STRING, CurrencyPair STRING, CurrencySymbol STRING, ExchangeName STRING, "
+            "Price STRING, Volume24H STRING, CirculatingSupply STRING, Liquidity STRING, TimeStamp STRING') AS value")
 
         # Transform Price, Volume24H, CirculatingSupply, Liquidity into float
         df = df.withColumn("value", struct(

@@ -1,34 +1,61 @@
-import datetime
 import os
 from unittest import mock
-
 from pyspark.testing.utils import assertDataFrameEqual
+
 from spark.apps.src.launch.currencies.preprocess.CurrenciesRawDataPreprocess import CurrenciesRawDataPreprocess
+from spark.apps.src.install.currencies.raw.schema import raw_schema
+from spark.apps.src.install.currencies.input.schema import input_schema
+from spark.apps.test.config.DefaultTestCase import DefaultTestCase
+from spark.apps.test.resources.preprocess.currencies.raw.config import root_path, relative_root_path, test_dht
+from spark.apps.test.config.transform.TransformTest import test_transform
 
-from spark.apps.src.config.PySparkTestCase import PySparkTestCase
 
+class CurrenciesRawDataPreprocessTest(DefaultTestCase):
 
-class CurrenciesRawDataPreprocessTest(PySparkTestCase):
-
-    def test_transform(self):
-        test_list = [
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.tests_list = [
             ("tu1", "Nominal case"),
             ("tu2", "Input already exists"),
             ("tu3", "Multliples lines to add"),
         ]
+        cls.test_files_path_names = ["expected", "inputRaw"]
+        cls.input_format = "json"
+        cls.root_path = root_path
 
-        for name, title in test_list:
-            test_root_path = f'../../../../ressources/preprocess/currencies/raw/{name}'
+    @test_transform
+    def test_transform(self):
+        for name, title in self.tests_list:
+            with self.subTest(name=name, title=title):
+                test_root_path = f'{root_path}/{name}'
+                relative_parquet_path = f'{relative_root_path}/{name}/parquet'
+                parquet_path = f'{test_root_path}/parquet'
 
-            input_df = self.spark.read.format("json").load(f'{test_root_path}/currencies.json')
+                input_df = (self.spark
+                            .readStream
+                            .option("inferSchema", "true")
+                            .format("json")
+                            .schema(input_schema)
+                            .load(f'{test_root_path}/currencies*.json'))
 
-            mock.patch.dict(os.environ, {"PARQUET_PATH": f'{test_root_path}/inputRaw'}).start()
-            CurrenciesRawDataPreprocess.transform(input_df, datetime.datetime.now().timestamp())
+                mock.patch.dict(os.environ, {"PARQUET_PATH": f'{relative_parquet_path}',
+                                             "PARQUET_CHECKPOINT_LOCATION": f'{relative_parquet_path}/checkpoint',
+                                             "DHT": test_dht}).start()
 
-            actual = self.spark.read.parquet(f'{test_root_path}/inputRaw')
+                CurrenciesRawDataPreprocess.transform(input_df).awaitTermination(1)
 
-            expected = self.spark.read.parquet(f'{test_root_path}/expected')
+                expected = (self.spark
+                            .read
+                            .schema(raw_schema)
+                            .option("mergeSchema", "true")
+                            .parquet(f'{test_root_path}/expected'))
 
-            assertDataFrameEqual(actual, expected)
-            mock.patch.dict(os.environ, {"PARQUET_PATH": ""}).stop()
-            PySparkTestCase.clean_input_directory(f'{test_root_path}/inputRaw')
+                actual = (self.spark
+                          .read
+                          .schema(raw_schema)
+                          .option("mergeSchema", "true")
+                          .parquet(f'{parquet_path}'))
+
+                assertDataFrameEqual(actual, expected)
+                mock.patch.dict(os.environ, {"PARQUET_PATH": ""}).stop()

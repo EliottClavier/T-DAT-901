@@ -7,12 +7,12 @@ from spark.apps.src.config.SparkSessionCustom import SparkSessionCustom
 
 class RawDataPreprocess(SparkSessionCustom):
     raw_stream = None
-    dhi_timestamp = None
+    dht_timestamp = None
 
     def __init__(self):
         super().__init__()
         self.raw_stream = self.read_from_kafka()
-        self.dhi_timestamp = datetime.datetime.now().timestamp()
+        self.dht_timestamp = datetime.datetime.now().timestamp()
 
     def read_from_kafka(self):
         return self.spark.readStream \
@@ -37,6 +37,6 @@ class RawDataPreprocess(SparkSessionCustom):
 
         # Add technical field
         raw_stream_df \
-            .withColumn("dhi", lit(self.dhi_timestamp))
+            .withColumn("dht", lit(self.dht_timestamp))
 
         self.write_to_parquet(raw_stream_df)

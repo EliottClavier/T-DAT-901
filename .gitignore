@@ -21,3 +21,5 @@ env/*
 
 grafana-data/**
 !grafana-data/grafana.db
+
+__pycache__/
