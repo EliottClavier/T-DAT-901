@@ -1,7 +1,9 @@
+import os
+
 from spark.apps.src.config.SparkSessionCustom import SparkSessionCustom
 
 
-class FunctionalDataAnalyze(SparkSessionCustom):
+class ExchangesFunctionalDataAnalyze(SparkSessionCustom):
     functional_stream = None
 
     def __init__(self):

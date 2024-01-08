@@ -39,6 +39,7 @@ class TransformTestUtils:
             for file_path_name in file_paths_names:
                 root_path = f'{test_root_path}/{test_name}'
                 file_path = f'{root_path}/{file_path_name}.{file_format}'
+                file_path_name = "parquet" if "input" in file_path_name else file_path_name
                 parquet_path = f'{root_path}/{file_path_name}/'
                 TransformTestUtils.convert_file_to_parquet(spark,
                                                            file_path,
