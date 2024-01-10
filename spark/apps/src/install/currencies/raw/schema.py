@@ -7,5 +7,5 @@ raw_schema = StructType([
     StructField("24h Volume", StringType(), False),
     StructField("Supply", StringType(), False),
     StructField("TimeStamp", StringType(), False),
-    StructField("dht", StringType(), False)
+    StructField("part_dht", StringType(), False)
 ])

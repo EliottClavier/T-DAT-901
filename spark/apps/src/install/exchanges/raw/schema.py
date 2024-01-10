@@ -6,5 +6,5 @@ raw_schema = StructType([
     StructField("CurrencySymbol", StringType(), False),
     StructField("TimeStamp", StringType(), False),
     StructField("ExchangeName", StringType(), False),
-    StructField("dht", StringType(), False)
+    StructField("part_dht", StringType(), False)
 ])

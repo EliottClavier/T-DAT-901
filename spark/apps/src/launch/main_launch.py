@@ -3,11 +3,10 @@ from spark.apps.src.launch.currencies.analyze.CurrenciesFunctionalDataAnalyze im
 
 
 def main():
-    data_preprocessing_transformer = CurrenciesRawDataPreprocess()
-    data_analyze_transformer = CurrenciesFunctionalDataAnalyze()
+    # Launch currencies flux transformers
+    CurrenciesRawDataPreprocess().start()
+    CurrenciesFunctionalDataAnalyze().start()
 
-    data_preprocessing_transformer.transform()
-    data_analyze_transformer.transform()
 
 
 if __name__ == "__main__":

@@ -7,5 +7,5 @@ functional_schema = StructType([
     StructField("24h Volume", LongType(), False),
     StructField("Supply", LongType(), False),
     StructField("TimeStamp", TimestampType(), False),
-    StructField("dht", TimestampType(), False)
+    StructField("part_dht", TimestampType(), False)
 ])

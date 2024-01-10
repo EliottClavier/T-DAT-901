@@ -6,5 +6,5 @@ functional_schema = StructType([
     StructField("CurrencySymbol", StringType(), False),
     StructField("TimeStamp", TimestampType(), False),
     StructField("ExchangeName", StringType(), False),
-    StructField("dht", TimestampType(), False)
+    StructField("part_dht", TimestampType(), False)
 ])

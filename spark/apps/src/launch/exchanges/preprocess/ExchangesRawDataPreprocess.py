@@ -28,7 +28,7 @@ class ExchangesRawDataPreprocess(SparkSessionCustom):
 
         # Add technical field
         input_df = input_df \
-            .withColumn("dht", lit(dht))
+            .withColumn("part_dht", lit(dht))
 
         string_columns = [col(column).cast("string").alias(column) for column in input_df.columns]
         raw_stream_df = input_df.select(*string_columns)

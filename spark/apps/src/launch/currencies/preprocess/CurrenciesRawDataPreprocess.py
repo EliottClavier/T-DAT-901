@@ -3,6 +3,7 @@ import os
 
 from pyspark.sql.functions import lit, col
 from spark.apps.src.config.SparkSessionCustom import SparkSessionCustom
+from spark.apps.src.launch.common.utils import get_dht
 
 
 class CurrenciesRawDataPreprocess(SparkSessionCustom):
@@ -26,11 +27,11 @@ class CurrenciesRawDataPreprocess(SparkSessionCustom):
 
     @staticmethod
     def transform(input_df):
-        dht = os.environ["DHT"] if os.environ["DHT"] is not None else datetime.now().timestamp()
+        dht = get_dht()
 
         # Add technical field
         input_df = input_df \
-            .withColumn("dht", lit(dht))
+            .withColumn("part_dht", lit(dht))
 
         string_columns = [col(column).cast("string").alias(column) for column in input_df.columns]
         raw_stream_df = input_df.select(*string_columns)
