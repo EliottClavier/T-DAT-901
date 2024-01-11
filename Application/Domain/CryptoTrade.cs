@@ -21,6 +21,10 @@ namespace Domain
 
         [JsonProperty("T")]
         public long? TimeStamp { get; set; }
+
+        [JsonProperty("a")]
+        public string? TradeId { get; set; }
+
         public string? ExchangeName { get; set; }
 
         public CryptoTrade(string exchangeName)
@@ -29,7 +33,7 @@ namespace Domain
         }
         public string ToJson()
         {
-            return $"{{ \"Price\": \"{Price}\", \"Quantity\": \"{Quantity}\", \"CurrencySymbol\": \"{CurrencySymbol}\", \"TimeStamp\": {TimeStamp}, \"ExchangeName\": \"{ExchangeName}\" }}";
+            return $"{{\"TradeId\": \"{TradeId}\"   \"Price\": \"{Price}\", \"Quantity\": \"{Quantity}\", \"CurrencySymbol\": \"{CurrencySymbol}\", \"TimeStamp\": {TimeStamp}, \"ExchangeName\": \"{ExchangeName}\" }}";
         }
     }
 }

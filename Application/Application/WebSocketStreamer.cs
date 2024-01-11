@@ -45,7 +45,6 @@ namespace Infrastructure.Socket
 
             OnTradeReceived += OnTradeReceivedHandler;
 
-
             return Task.CompletedTask;
         }
 
