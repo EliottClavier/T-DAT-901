@@ -5,6 +5,7 @@
 .env
 env/*
 !env/*.example.*
+
 /Application/Application/bin/Debug/net6.0
 /Application/Core/bin/Debug/net6.0
 *.exe
@@ -17,3 +18,6 @@ env/*
 /Application/Application/bin/Release/net6.0
 /Application/Domain/bin/Release/net6.0
 /Application/Infrastructure/bin/Release/net6.0
+
+grafana-data/**
+!grafana-data/grafana.db

@@ -1,100 +1,165 @@
 version: '3'
 
-
-networks:
-    kafka-net:
-    producer-consumer-net:
-    influxdb-net:
-    grafana-net:
-    # web:
-    #   external: true
-    #   driver:  bridge
-      
 services:
-
   app:
     container_name: app
     build:
       context: ./Application
       dockerfile: Api/Dockerfile
-    restart: unless-stopped 
-    ports:
-      - "8081:80"
-    environment:
-      - KAFKA__BOOTSTRAP_SERVERS=${KAFKA__BOOTSTRAP_SERVERS}
-      - KAFKA__DEFAULT_TOPIC=${KAFKA__DEFAULT_TOPIC}     
-    networks:
-      - kafka-net
+    restart: unless-stopped
     depends_on:
       - kafka
-      - spark
-    
-    
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      KAFKA__BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}	
+      KAFKA__DEFAULT_TOPIC: ${KAFKA__DEFAULT_TOPIC}
+      KAFKA__TRANSACTION_TOPIC: ${KAFKA__TRANSACTION_TOPIC}
+    networks:
+      producer-net:
+
+  zookeeper:
+    container_name: zookeeper
+    image: "bitnami/zookeeper:latest"
+    expose:
+      - "${ZOOKEEPER_PORT}"
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: yes
+    networks:
+      producer-net:
+        ipv4_address: ${PRODUCER_RANGE}3
+
   kafka:
     container_name: kafka
-    image: confluentinc/cp-kafka:latest
-    restart: unless-stopped
-    ports:
-      - "9092:9092"
+    image: bitnami/kafka:2.5.0
+    depends_on:
+      - zookeeper
+    expose:
+      - "${KAFKA_PORT}"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENERS: ${KAFKA_LISTENERS}
+      KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_PORT}
+      ALLOW_PLAINTEXT_LISTENER: yes
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
     networks:
-      - kafka-net
-      - producer-consumer-net
+      producer-net:
+        ipv4_address: ${PRODUCER_RANGE}2
+      consumer-net:
+        ipv4_address: ${CONSUMER_RANGE}5
 
-  spark:
-    container_name: spark
+  spark-master:
+    container_name: spark-master
     build:
       context: ./spark
-    restart: unless-stopped
-    ports:
-      - "4040:4040"
-    networks:
-      - producer-consumer-net
-      - influxdb-net
     depends_on:
+      - app
+      - zookeeper
       - kafka
       - influxdb
+    expose:
+      - "${SPARK_MASTER_PORT}"
+    ports:
+      - "${SPARK_MASTER_WEBUI_PORT}:${SPARK_MASTER_WEBUI_PORT}"
+    environment:
+      SPARK_RPC_AUTHENTICATION_ENABLED: no
+      SPARK_RPC_ENCRYPTION_ENABLED: no
+      SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: no
+      SPARK_SSL_ENABLED: no
+      SPARK_MASTER_HOST: ${CONSUMER_RANGE}4
+      KAFKA_BOOTSTRAP_SERVERS: ${CONSUMER_RANGE}5:${KAFKA_PORT}
+      KAFKA_DEFAULT_TOPIC: ${KAFKA__DEFAULT_TOPIC}
+      KAFKA_TRANSACTION_TOPIC: ${KAFKA__TRANSACTION_TOPIC}
+      INFLUXDB_HOST: influxdb
+      INFLUXDB_PORT: ${INFLUXDB_PORT}
+      INFLUXDB_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
+      INFLUXDB_ORG: ${INFLUXDB_ORG}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+    networks:
+      consumer-net:
+        ipv4_address: ${CONSUMER_RANGE}4
+      influxdb-net:
+
+  spark-worker:
+    image: bitnami/spark:latest
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://${CONSUMER_RANGE}4:${SPARK_MASTER_PORT}
+    depends_on:
+      - spark-master
+    environment:
+      SPARK_MODE: worker
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 2g
+      SPARK_MASTER_URL: spark://${CONSUMER_RANGE}4:${SPARK_MASTER_PORT}
+    networks:
+      consumer-net:
 
   influxdb:
     container_name: influxdb
     image: influxdb:latest
     restart: unless-stopped
-    environment:
-      INFLUXDB_DB: ${INFLUXDB_DB}
-      INFLUXDB_ADMIN_USER: ${INFLUXDB_USER}
-      INFLUXDB_ADMIN_PASSWORD: ${INFLUXDB_PASSWORD}
-    ports:
-      - "8086:8086"
-    volumes:
-      - influxdb-data:/var/lib/influxdb
-    networks:
-      - influxdb-net
-      - grafana-net
     depends_on:
       - kafka
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_USER}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_BUCKET}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
+      # DOCKER_INFLUXDB_INIT_RETENTION: 1h
+    ports:
+      - "${INFLUXDB_PORT}:${INFLUXDB_PORT}"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+    networks:
+      influxdb-net:
+      grafana-net:
 
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
     restart: unless-stopped
+    depends_on:
+      - app
+      - kafka
+      - influxdb
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_USERNAME}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
     ports:
-      - "3000:3000"
+      - "${GRAFANA_PORT}:${GRAFANA_PORT}"
     volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana-provisioning/:/etc/grafana/provisioning
+      - ./grafana-data:/var/lib/grafana
     networks:
-      - grafana-net
-    depends_on:
-      - app
-      - kafka
-      - spark
-      - influxdb
+      grafana-net:
 
-
+networks:
+  influxdb-net:
+  grafana-net:
+  producer-net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${PRODUCER_RANGE}0/16
+          ip_range: ${PRODUCER_RANGE}0/24
+          gateway: ${PRODUCER_RANGE}1
+  consumer-net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${CONSUMER_RANGE}0/16
+          gateway: ${CONSUMER_RANGE}1
 
 volumes:
   influxdb-data:
+  influxdb-config:
   grafana-data:
-

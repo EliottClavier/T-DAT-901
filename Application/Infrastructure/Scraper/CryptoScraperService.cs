@@ -1,11 +1,7 @@
 ﻿using Domain;
 using Domain.Ports;
-using Microsoft.Extensions.Logging;
-
-using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 using OpenQA.Selenium;
-using Domain.Domain;
 using System.Text.RegularExpressions;
 using System.Globalization;
 
@@ -67,8 +63,10 @@ namespace Infrastructure.Scraper
         {
             var match = Regex.Match(value, @"\$(\d+(?:,\d{3})*(?:\.\d+)?)");
             if (match.Success)
-                return match.Groups[1].Value.Replace(",", string.Empty).Trim();
-
+            {
+                var res = match.Groups[1].Value.Replace(",", string.Empty).Trim();
+                 return res;
+            }
             return value; 
         }
 
