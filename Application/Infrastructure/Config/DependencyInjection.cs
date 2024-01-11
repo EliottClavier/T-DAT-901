@@ -1,6 +1,5 @@
 ﻿
 using Domain;
-using Domain.Domain;
 using Domain.Ports;
 using Infrastructure.Kafka;
 using Infrastructure.Scraper;

@@ -1,4 +1,4 @@
-﻿using Domain.Domain;
+﻿using Domain;
 using Domain.Ports;
 using Infrastructure.Kafka;
 using Microsoft.Extensions.Hosting;
