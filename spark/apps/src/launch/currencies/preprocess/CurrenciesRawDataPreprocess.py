@@ -4,6 +4,7 @@ import os
 from pyspark.sql.functions import lit, col
 from spark.apps.src.config.SparkSessionCustom import SparkSessionCustom
 from spark.apps.src.launch.common.utils import get_dht
+from spark.apps.src.launch.currencies.LaunchCurrenciesConfig import RawCurrenciesConfig as config
 
 
 class CurrenciesRawDataPreprocess(SparkSessionCustom):
@@ -16,7 +17,8 @@ class CurrenciesRawDataPreprocess(SparkSessionCustom):
         self.dht_timestamp = datetime.now().timestamp()
 
     def start(self):
-        self.raw_stream.foreachBatch(self.transform)
+        stream = self.raw_stream.writeStream.foreachBatch(self.transform).start()
+        stream.awaitTermination()
 
     def read_from_kafka(self):
         return self.spark.readStream \
@@ -26,7 +28,7 @@ class CurrenciesRawDataPreprocess(SparkSessionCustom):
             .load()
 
     @staticmethod
-    def transform(input_df):
+    def transform(input_df, epoch_id):
         dht = get_dht()
 
         # Add technical field
@@ -39,8 +41,12 @@ class CurrenciesRawDataPreprocess(SparkSessionCustom):
         # Éliminer les lignes avec des valeurs nulles
         raw_stream_df = raw_stream_df.na.drop()
 
-        return (raw_stream_df.writeStream
-                .outputMode("append")
-                .format("parquet")
-                .option("checkpointLocation", os.environ["PARQUET_CHECKPOINT_LOCATION"])
-                .start(os.environ["PARQUET_PATH"]))
+        # return (raw_stream_df.writeStream
+        #         .outputMode("append")
+        #         .format("parquet")
+        #         .option("checkpointLocation", config.checkpoint_location)
+        #         .start(config.absolute_output_path))
+
+        raw_stream_df.write \
+            .mode("overwrite") \
+            .parquet(config.absolute_output_path)

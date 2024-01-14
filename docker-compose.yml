@@ -56,7 +56,7 @@ services:
   spark-master:
     container_name: spark-master
     build:
-      context: ./spark
+      context: ./spark/apps
     depends_on:
       - app
       - zookeeper
@@ -80,7 +80,7 @@ services:
       INFLUXDB_ORG: ${INFLUXDB_ORG}
       INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
     volumes:
-      - ./spark-data:/opt/spark/parquet
+      - spark-data:/opt/bitnami/spark/spark/data
     networks:
       consumer-net:
         ipv4_address: ${CONSUMER_RANGE}4
