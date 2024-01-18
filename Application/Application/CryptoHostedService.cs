@@ -48,7 +48,7 @@ namespace Core
 
 
                     var jsonInfo = JsonConvert.SerializeObject(info);
-                    await _kafkaProducer.ProduceAsync(jsonInfo);
+                   await _kafkaProducer.ProduceAsync(jsonInfo);
 
                 }
             }

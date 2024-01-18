@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace Infrastructure.Scraper
 {
-    public class CryptoScraperService : ICryptoScraperService
+    public class CryptoScraperService : ICryptoScraperService, IDisposable
     {
         private readonly IWebDriver _driver;
         private readonly ExchangeScrappingInfo _info;
@@ -58,7 +58,7 @@ namespace Infrastructure.Scraper
         private string? CleanPrice(string? value)
         {
             if (string.IsNullOrEmpty(value))
-                return value;
+                return null;
 
             var match = Regex.Match(value, @"\$(\d+(?:,\d{3})*(?:\.\d+)?)");
             if (match.Success)
@@ -72,7 +72,7 @@ namespace Infrastructure.Scraper
         private static string? CleanSupply(string? value)
         {
             if (string.IsNullOrEmpty(value))
-                return value;
+                return null;
 
             var match = Regex.Match(value, @"\d+(?:,\d{3})*");
             if (match.Success)
@@ -84,7 +84,7 @@ namespace Infrastructure.Scraper
         private static string? CleanVolume(string? value)
         {
             if (string.IsNullOrEmpty(value))
-                return value;
+                return null;
 
             // Gère le cas des abréviations (M pour millions, B pour milliards, etc.)
             var abbreviationMatch = Regex.Match(value, @"\$(\d+(\.\d+)?)([MBK])", RegexOptions.IgnoreCase);
@@ -125,8 +125,7 @@ namespace Infrastructure.Scraper
 
 
         public void Dispose()
-        {
-            _driver.Dispose();
+        {            
             _driver.Quit();
         }
 
