@@ -10,5 +10,7 @@ namespace Infrastructure.Kafka
     {
         public string BootstrapServers { get; set; }
         public string DefaultTopic { get; set; }
+
+        public string TransactionTopic { get; set; }
     }
 }
