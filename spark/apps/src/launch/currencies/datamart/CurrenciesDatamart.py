@@ -1,56 +1,51 @@
-import os
 from datetime import datetime
-from influxdb import DataFrameClient
-from pyspark.sql.functions import lit, col, udf
+import os
+import pandas
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
 
-from spark.apps.src.config.SparkSessionCustom import SparkSessionCustom
+from spark.apps.src.launch.currencies.LaunchCurrenciesConfig import DatamartCurrenciesConfig as config
+from spark.apps.src.install.currencies.schema.functional.schema import functional_schema
 
 
-class CurrenciesDatamart(SparkSessionCustom):
+class CurrenciesDatamart:
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, spark):
+        self.spark = spark
         self.currencies_stream = self.read_currencies()
-        self.client = DataFrameClient(
-            host=os.environ['INFLUXDB_HOST'],
-            port=os.environ['INFLUXDB_PORT'],
-            username=os.environ["INFLUXDB_USER"],
-            password=os.environ["INFLUXDB_PASSWORD"],
-            database=os.environ["INFLUXDB_BUCKET"]
-        )
+        self.client = InfluxDBClient.from_env_properties()
+        self.write_api = self.client.write_api(write_options=SYNCHRONOUS)
 
     def start(self):
-        self.currencies_stream.foreachBatch(self.transform)
+        self.currencies_stream.writeStream \
+            .outputMode("append") \
+            .foreachBatch(self.transform) \
+            .start()
 
     def read_currencies(self):
         return self.spark.readStream \
-            .format("parquet") \
-            .option("path", os.environ["PARQUET_PATH"]) \
-            .option("checkpointLocation", os.environ["PARQUET_CHECKPOINT_LOCATION"]) \
-            .load()
+            .schema(functional_schema) \
+            .json(config.absolute_input_path)
 
     def write_to_influx_db(self, output_df):
-        measurement = "CryptoCurrency"
+        pandas_df = output_df.toPandas()
 
-        self.client.write_points(output_df,
-                            measurement)
+        # Write each row as a point to InfluxDB
+        for index, row in pandas_df.iterrows():
+            point = Point("CryptoCurrency") \
+                .tag("CurrencyName", row['CurrencyName']) \
+                .field("ExchangeName", row['ExchangeName']) \
+                .field("Price", row['Price']) \
+                .field("dht", row['dht']) \
+                .time(datetime.fromtimestamp(row['part_dhi']))
+            self.write_api.write(bucket="crypto_db", record=point)
 
-    def transform(self, currencies_df):
+    def transform(self, currencies_df, epoch_id):
         # Read exchanges df
 
         # Window function
 
         # Aggregate
 
-        # Format dates
-        convert_from_timestamp_udf = udf(lambda date: datetime.fromtimestamp(date))
-        output_df = (currencies_df
-                     .withColumn("dht", convert_from_timestamp_udf(col("dht")))
-                     .withColumn("part_dhi", convert_from_timestamp_udf(col("part_dhi"))))
-
         # Write
-        self.write_to_influx_db(output_df)
-
-
-
-
+        self.write_to_influx_db(currencies_df)

@@ -1,10 +1,8 @@
-from pyspark.sql.types import StructType, StructField, StringType, DoubleType, LongType, TimestampType, IntegerType
+from pyspark.sql.types import StructType, StructField, StringType
 
 input_schema = StructType([
-    StructField("Exchange", StringType(), False),
-    StructField("Name", StringType(), False),
-    StructField("Price", IntegerType(), False),
-    StructField("24h Volume", LongType(), False),
-    StructField("Supply", IntegerType(), False),
-    StructField("TimeStamp", IntegerType(), False)
+    StructField("CurrencyName", StringType(), False),
+    StructField("ExchangeName", StringType(), False),
+    StructField("Price", StringType(), False),
+    StructField("TimeStamp", StringType(), False)
 ])

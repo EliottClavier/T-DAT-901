@@ -1,2 +1,2 @@
 pandas
-influxdb
+influxdb-client

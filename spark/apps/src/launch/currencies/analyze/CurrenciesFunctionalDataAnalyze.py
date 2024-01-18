@@ -1,36 +1,35 @@
-import os
+from pyspark.sql.functions import col
+from spark.apps.src.install.currencies.schema.functional.schema import functional_schema
+from spark.apps.src.install.currencies.schema.raw.schema import raw_schema
+from spark.apps.src.launch.currencies.LaunchCurrenciesConfig import FunctionalCurrenciesConfig as config
 
-from spark.apps.src.config.SparkSessionCustom import SparkSessionCustom
-from spark.apps.src.install.currencies.functional.schema import functional_schema
 
+class CurrenciesFunctionalDataAnalyze:
 
-class CurrenciesFunctionalDataAnalyze(SparkSessionCustom):
-    functional_stream = None
-
-    def __init__(self):
-        super().__init__()
+    def __init__(self, spark):
+        self.spark = spark
         self.functional_stream = self.read_from_parquet()
 
     def start(self):
-        self.functional_stream.foreachBatch(self.transform)
+        self.functional_stream.writeStream \
+            .foreachBatch(self.transform) \
+            .start()
 
     def read_from_parquet(self):
         return self.spark.readStream \
-            .format("parquet") \
-            .option("path", os.environ["PARQUET_PATH"]) \
-            .option("checkpointLocation", os.environ["PARQUET_CHECKPOINT_LOCATION"]) \
-            .load()
+            .schema(raw_schema) \
+            .option("cleanSource", "delete") \
+            .json(config.absolute_input_path)
 
-    def transform(self, input_df):
+    def transform(self, input_df, epoch_id):
         input_df = (input_df
                     .withColumnRenamed("part_dht", "dht")
                     .withColumnRenamed("Timestamp", "part_dhi"))
 
-        rdd = input_df.rdd
-        output_df = self.spark.createDataFrame(rdd, schema=functional_schema)
+        output_df = input_df.select([col(field.name)
+                                    .cast(field.dataType)
+                                    .alias(field.name) for field in functional_schema.fields])
 
-        return (output_df.writeStream
-                .outputMode("append")
-                .format("parquet")
-                .option("checkpointLocation", os.environ["PARQUET_CHECKPOINT_LOCATION"])
-                .start(os.environ["PARQUET_PATH"]))
+        return (output_df.write
+                .mode("append")
+                .json(config.absolute_output_path))
