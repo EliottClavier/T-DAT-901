@@ -27,9 +27,9 @@ namespace Domain
         {
         }
         public CryptoData(
-            string? currencyName, string? currencyPair, string? currencySymbol,
-            string? exchangeName, string? price, string? volume24H,
-            string? circulatingSupply, string? liquidity)
+            string? currencyName = null, string? currencyPair = null, string? currencySymbol = null,
+            string? exchangeName = null, string? price = null, string? volume24H = null,
+            string? circulatingSupply = null, string? liquidity = null)
         {
             this.CurrencyName = currencyName;
             this.CurrencyPair = currencyPair;

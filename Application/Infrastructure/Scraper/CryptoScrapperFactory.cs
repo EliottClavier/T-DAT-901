@@ -30,7 +30,9 @@ namespace Infrastructure.Scraper
             {
                 var driverFactory = new ChromWebDriverFactory(_logger);
 
-                return new CryptoScraperService(info, driverFactory.CreateDriver());
+                var scraperService = new CryptoScraperService(info, driverFactory.CreateDriver());
+               
+                return scraperService;                          
      
             }
             else
