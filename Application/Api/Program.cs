@@ -24,11 +24,28 @@ builder.Configuration
 builder.Services.AddLogging();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication(builder.Configuration);
+builder.Services.AddControllers();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "front", policy =>
+    {
+        policy
+        .AllowAnyHeader()
+        .AllowAnyOrigin()
+        .AllowAnyMethod();
+    }
+        );
+}
+    );
 
 var app = builder.Build();
 
-app.MapGet("/", () => "Hello Crypto World!");
+app.MapControllers();
+
+//app.MapGet("/", () => "Hello Crypto World!");/
+
+app.UseCors("front");
 
 app.Run();
 

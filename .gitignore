@@ -21,3 +21,4 @@ env/*
 
 grafana-data/**
 !grafana-data/grafana.db
+/T-DAT-901_key.pem

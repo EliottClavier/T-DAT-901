@@ -30,7 +30,7 @@ namespace Core
             if (serviceFactory == null) return;
 
             _scraperServices = new List<ICryptoScraperService>();
-            foreach (var crypto in cryptoList)
+            foreach (ExchangeScrappingInfo crypto in cryptoList)
             {
                 _scraperServices.Add(serviceFactory(crypto));
             };
@@ -65,15 +65,15 @@ namespace Core
         public Task StartAsync(CancellationToken cancellationToken)
         {
 
-            foreach (var service in _scraperServices)
-            {
-                void Callback(object? _) => FetchCryptoInfo(service);
+            //foreach (var service in _scraperServices)
+            //{
+            //    void Callback(object? _) => FetchCryptoInfo(service);
 
-                var timer = new Timer(Callback,
-                    null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+            //    var timer = new Timer(Callback,
+            //        null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
 
-                _timers.Add(timer);
-            }
+            //    _timers.Add(timer);
+            //}
 
             return Task.CompletedTask;
         }
