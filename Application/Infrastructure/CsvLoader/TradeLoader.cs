@@ -70,7 +70,7 @@ public class TradeLoader
         Console.Write(_numberOfbatch);
         Console.Write(" ");
         Console.WriteLine(batchJson);
-        //await _kafkaProducerService.ProduceAsync(batchJson, topic);
+        await _kafkaProducerService.ProduceAsync(batchJson, topic);
 
     }
 }
