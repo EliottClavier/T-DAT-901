@@ -1,4 +1,5 @@
 from pyspark.sql.functions import col
+from datetime import datetime
 from spark.apps.src.install.currencies.schema.functional.schema import functional_schema
 from spark.apps.src.install.currencies.schema.raw.schema import raw_schema
 from spark.apps.src.launch.currencies.LaunchCurrenciesConfig import FunctionalCurrenciesConfig as config
@@ -19,17 +20,30 @@ class CurrenciesFunctionalDataAnalyze:
         return self.spark.readStream \
             .schema(raw_schema) \
             .option("cleanSource", "delete") \
-            .json(config.absolute_input_path)
+            .parquet(config.absolute_input_path)
+
+    def write_partitioned_row(self, row):
+        dhi = datetime.fromtimestamp(row['dhi'])
+        output_row_df = self.spark.createDataFrame([row], functional_schema)
+        output_row_df \
+            .write \
+            .mode("append") \
+            .parquet(f"{config.absolute_output_path} \
+                /dhi={dhi.strftime('%Y%m%d%H%M')}")
 
     def transform(self, input_df, epoch_id):
         input_df = (input_df
                     .withColumnRenamed("part_dht", "dht")
-                    .withColumnRenamed("Timestamp", "part_dhi"))
+                    .withColumnRenamed("Timestamp", "dhi"))
 
         output_df = input_df.select([col(field.name)
                                     .cast(field.dataType)
                                     .alias(field.name) for field in functional_schema.fields])
 
-        return (output_df.write
-                .mode("append")
-                .json(config.absolute_output_path))
+        for row in output_df.collect():
+            self.write_partitioned_row(row)
+
+        output_df.write \
+            .mode("append") \
+            .parquet(f"{config.absolute_output_path}/tmp")
+

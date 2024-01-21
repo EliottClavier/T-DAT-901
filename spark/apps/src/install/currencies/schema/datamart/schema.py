@@ -1,6 +1,6 @@
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType, LongType
 
-functional_schema = StructType([
+datamart_schema = StructType([
     StructField("CurrencyName", StringType(), False),
     StructField("ExchangeName", StringType(), False),
     StructField("Price", DoubleType(), True),

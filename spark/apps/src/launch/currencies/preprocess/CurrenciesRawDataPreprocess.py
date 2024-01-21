@@ -1,5 +1,5 @@
 import os
-from pyspark.sql.functions import col, from_json, lit
+from pyspark.sql.functions import lit
 
 from spark.apps.src.launch.common.utils import get_dht, parse_kafka_df
 from spark.apps.src.launch.currencies.LaunchCurrenciesConfig import RawCurrenciesConfig as config
@@ -28,8 +28,10 @@ class CurrenciesRawDataPreprocess:
 
         parsed_df = parse_kafka_df(input_df, input_schema)
 
+        parsed_df = parsed_df.na.drop()
+
         parsed_df = parsed_df.withColumn("part_dht", lit(str(dht)))
 
         parsed_df.write \
             .mode("append") \
-            .json(config.absolute_output_path)
+            .parquet(config.absolute_output_path)
