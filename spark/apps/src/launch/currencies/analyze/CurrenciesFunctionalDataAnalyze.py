@@ -28,8 +28,7 @@ class CurrenciesFunctionalDataAnalyze:
         output_row_df \
             .write \
             .mode("append") \
-            .parquet(f"{config.absolute_output_path} \
-                /dhi={dhi.strftime('%Y%m%d%H%M')}")
+            .parquet(f"{config.absolute_output_path}/dhi={dhi.strftime('%Y%m%d%H%M')}")
 
     def transform(self, input_df, epoch_id):
         input_df = (input_df
@@ -45,5 +44,5 @@ class CurrenciesFunctionalDataAnalyze:
 
         output_df.write \
             .mode("append") \
-            .parquet(f"{config.absolute_output_path}/tmp")
+            .parquet(config.absolute_output_tmp_path)
 

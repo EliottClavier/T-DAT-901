@@ -21,3 +21,4 @@ class FunctionalCurrenciesConfig:
 class DatamartCurrenciesConfig:
     input_path = FunctionalCurrenciesConfig.output_path
     absolute_input_path = FunctionalCurrenciesConfig.absolute_output_path
+    absolute_input_tmp_path = FunctionalCurrenciesConfig.absolute_output_tmp_path

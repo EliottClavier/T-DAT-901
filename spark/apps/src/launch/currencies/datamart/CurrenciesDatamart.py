@@ -3,8 +3,8 @@ from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 from spark.apps.src.launch.currencies.LaunchCurrenciesConfig import DatamartCurrenciesConfig as config
-from spark.apps.src.install.currencies.schema.datamart.schema import datamart_schema
 from spark.apps.src.install.currencies.schema.functional.schema import functional_schema
+from spark.apps.src.launch.currencies.datamart.CandleBuilder import CandleBuilder
 
 
 class CurrenciesDatamart:
@@ -14,6 +14,7 @@ class CurrenciesDatamart:
         self.currencies_stream = self.read_currencies_stream()
         self.client = InfluxDBClient.from_env_properties()
         self.write_api = self.client.write_api(write_options=SYNCHRONOUS)
+        self.candle_builder = CandleBuilder(self.spark)
 
     def start(self):
         self.currencies_stream.writeStream \
@@ -25,7 +26,7 @@ class CurrenciesDatamart:
         return self.spark.readStream \
             .schema(functional_schema) \
             .option("cleanSource", "delete") \
-            .parquet(f"{config.absolute_input_path}/tmp")
+            .parquet(config.absolute_input_tmp_path)
 
     def write_to_influx_db(self, output_df):
         pandas_df = output_df.toPandas()
@@ -37,15 +38,13 @@ class CurrenciesDatamart:
                 .field("ExchangeName", row['ExchangeName']) \
                 .field("Price", row['Price']) \
                 .field("dht", row['dht']) \
+                .field("minuteCandle", row['minuteCandle']) \
                 .time(datetime.fromtimestamp(row['dhi']))
             self.write_api.write(bucket="crypto_db", record=point)
 
     def transform(self, currencies_df, epoch_id):
-        # Read exchanges df
-
-        # Window function
-
         # Aggregate
+        computed_df_list = self.candle_builder.build_candles(currencies_df)
 
         # Write
-        self.write_to_influx_db(currencies_df)
+        self.write_to_influx_db(computed_df_list)
