@@ -1,13 +1,10 @@
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType, LongType
 
 candle_schema = StructType([
-    StructField("openingPrice", DoubleType(), False),
-    StructField("closurePrice", DoubleType(), False),
-    StructField("highestPrice", DoubleType(), False),
-    StructField("lowestPrice", DoubleType(), False),
-    StructField("CurrencyName", StringType(), False),
-    StructField("dhi", LongType(), False),
-    StructField("dht", LongType(), False)
+    StructField("CurrencyName", StringType(), True),
+    StructField("dhi", LongType(), True),
+    StructField("dht", LongType(), True),
+    StructField("minuteCandle", StringType(), True)
 ])
 
 datamart_schema = StructType([

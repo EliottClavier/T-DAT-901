@@ -1,11 +1,11 @@
 import json
 from datetime import datetime
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StringType
 from pyspark.sql.window import Window
 from pyspark.sql import DataFrame, Row
-from pyspark.sql.functions import col, min, max, first, last, udf
+from pyspark.sql.functions import col, min, max, first, last
 
+from spark.apps.src.install.currencies.schema.datamart.schema import candle_schema
 from spark.apps.src.launch.currencies.LaunchCurrenciesConfig import DatamartCurrenciesConfig
 
 
@@ -50,25 +50,29 @@ class CandleBuilder:
         return json.dumps(candle)
 
     def build_candles(self, currencies_df: DataFrame):
-        column_and_filepath_candles_list = [("minuteCandle", '%Y%m%d%H%M')]
+        candles_result_df = self.spark.createDataFrame([], candle_schema)
 
-        # Définir la spécification de la fenêtre
-        windowSpec = Window.partitionBy("CurrencyName").orderBy("dhi")
+        for row in currencies_df.distinct().collect():
+            current_dhi = row['dhi']
+            current_currency_name = row['CurrencyName']
+            minute_dhi_path = datetime.fromtimestamp(current_dhi).strftime('%Y%m%d%H%M')
 
-        # Calculer les valeurs des bougies directement sur le DataFrame
-        computed_df = currencies_df \
-            .withColumn("lowestPrice", min(col("Price")).over(windowSpec)) \
-            .withColumn("highestPrice", max(col("Price")).over(windowSpec)) \
-            .withColumn("openingPrice", first(col("Price")).over(windowSpec)) \
-            .withColumn("closurePrice", last(col("Price")).over(windowSpec))
+            dhi_currencies_df = self.read_currencies_like_dhi(minute_dhi_path, current_currency_name)
 
-        # Créer une représentation JSON des bougies
-        to_json_udf = udf(lambda lowestPrice, highestPrice, openingPrice, closurePrice: json.dumps({
-            "lowestPrice": lowestPrice,
-            "highestPrice": highestPrice,
-            "openingPrice": openingPrice,
-            "closurePrice": closurePrice
-        }), StringType())
+            filled_candle_df = self.fill_candle(dhi_currencies_df, "minuteCandle").first()
 
-        return computed_df.withColumn("minuteCandle", to_json_udf(
-            col("lowestPrice"), col("highestPrice"), col("openingPrice"), col("closurePrice")))
+            candles_result_row = self.spark.createDataFrame([(
+                current_currency_name,
+                current_dhi,
+                row['dht'],
+                json.dumps({
+                    "lowestPrice": filled_candle_df["minuteCandle.lowestPrice"],
+                    "highestPrice": filled_candle_df["minuteCandle.highestPrice"],
+                    "openingPrice": filled_candle_df["minuteCandle.openingPrice"],
+                    "closurePrice": filled_candle_df["minuteCandle.closurePrice"]
+                })
+            )], candle_schema)
+
+            candles_result_df = candles_result_df.union(candles_result_row)
+
+        return candles_result_df

@@ -28,6 +28,16 @@ class CurrenciesDatamart:
             .option("cleanSource", "delete") \
             .parquet(config.absolute_input_tmp_path)
 
+    def write_candle_to_influx_db(self, candle_df):
+        pandas_df = candle_df.toPandas()
+        for index, row in pandas_df.iterrows():
+            point = Point("CryptoCurrencyCandles") \
+                .tag("CurrencyName", row['CurrencyName']) \
+                .field("dht", row['dht']) \
+                .field("minuteCandle", row['minuteCandle']) \
+                .time(datetime.fromtimestamp(row['dhi']))
+            self.write_api.write(bucket="crypto_db", record=point)
+
     def write_to_influx_db(self, output_df):
         pandas_df = output_df.toPandas()
 
@@ -38,13 +48,12 @@ class CurrenciesDatamart:
                 .field("ExchangeName", row['ExchangeName']) \
                 .field("Price", row['Price']) \
                 .field("dht", row['dht']) \
-                .field("minuteCandle", row['minuteCandle']) \
                 .time(datetime.fromtimestamp(row['dhi']))
             self.write_api.write(bucket="crypto_db", record=point)
 
     def transform(self, currencies_df, epoch_id):
         # Aggregate
-        computed_df_list = self.candle_builder.build_candles(currencies_df)
+        self.write_candle_to_influx_db(self.candle_builder.build_candles(currencies_df))
 
         # Write
-        self.write_to_influx_db(computed_df_list)
+        self.write_to_influx_db(currencies_df)
