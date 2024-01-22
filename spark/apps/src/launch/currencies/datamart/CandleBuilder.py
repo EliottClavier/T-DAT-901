@@ -27,8 +27,8 @@ class CandleBuilder:
         computed_df = currencies_df \
             .withColumn(f"{candle_column_name}.lowestPrice", min(col("Price")).over(windowSpec)) \
             .withColumn(f"{candle_column_name}.highestPrice", max(col("Price")).over(windowSpec)) \
-            .withColumn(f"{candle_column_name}.openingPrice", first(col("Price")).over(windowSpec)) \
-            .withColumn(f"{candle_column_name}.closurePrice", last(col("Price")).over(windowSpec))
+            .withColumn(f"{candle_column_name}.openingPrice", last(col("Price")).over(windowSpec)) \
+            .withColumn(f"{candle_column_name}.closurePrice", first(col("Price")).over(windowSpec))
 
         return computed_df
 

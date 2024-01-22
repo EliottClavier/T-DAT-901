@@ -26,6 +26,7 @@ class CurrenciesFunctionalDataAnalyze:
         dhi = datetime.fromtimestamp(row['dhi'])
         output_row_df = self.spark.createDataFrame([row], functional_schema)
         output_row_df \
+            .drop("dhi") \
             .write \
             .mode("append") \
             .parquet(f"{config.absolute_output_path}/dhi={dhi.strftime('%Y%m%d%H%M')}")
