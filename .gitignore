@@ -19,8 +19,11 @@ env/*
 /Application/Domain/bin/Release/net6.0
 /Application/Infrastructure/bin/Release/net6.0
 
-grafana-data/**
-!grafana-data/grafana.db
-
 __pycache__/
 *.db
+
+grafana-data/alerting
+grafana-data/csv
+grafana-data/plugins
+grafana-data/png
+!grafana-data/grafana.db
