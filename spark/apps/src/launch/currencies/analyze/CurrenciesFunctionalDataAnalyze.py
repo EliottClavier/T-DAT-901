@@ -31,6 +31,15 @@ class CurrenciesFunctionalDataAnalyze:
             .mode("append") \
             .parquet(f"{config.absolute_output_path}/dhi={dhi.strftime('%Y%m%d%H%M')}")
 
+    def write_hourly_partitioned_row(self, row):
+        dhi = datetime.fromtimestamp(row['dhi'])
+        output_row_df = self.spark.createDataFrame([row], functional_schema)
+        output_row_df \
+            .drop("dhi") \
+            .write \
+            .mode("append") \
+            .parquet(f"{config.absolute_output_path}/dhi={dhi.strftime('%Y%m%d%H')}")
+
     def transform(self, input_df, epoch_id):
         input_df = (input_df
                     .withColumnRenamed("part_dht", "dht")
@@ -42,6 +51,7 @@ class CurrenciesFunctionalDataAnalyze:
 
         for row in output_df.collect():
             self.write_partitioned_row(row)
+            self.write_hourly_partitioned_row(row)
 
         output_df.write \
             .mode("append") \

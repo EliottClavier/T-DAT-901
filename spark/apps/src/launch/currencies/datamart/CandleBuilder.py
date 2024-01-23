@@ -3,9 +3,9 @@ from datetime import datetime
 from pyspark.sql import SparkSession
 from pyspark.sql.window import Window
 from pyspark.sql import DataFrame, Row
-from pyspark.sql.functions import col, min, max, first, last
+from pyspark.sql.functions import col, min, max, first, last, hour, from_unixtime
 
-from spark.apps.src.install.currencies.schema.datamart.schema import candle_schema
+from spark.apps.src.install.currencies.schema.datamart.schema import candle_schema, candle_hour_schema
 from spark.apps.src.launch.currencies.LaunchCurrenciesConfig import DatamartCurrenciesConfig
 
 
@@ -72,6 +72,34 @@ class CandleBuilder:
                     "closurePrice": filled_candle_df["minuteCandle.closurePrice"]
                 })
             )], candle_schema)
+
+            candles_result_df = candles_result_df.union(candles_result_row)
+
+        return candles_result_df
+
+    def build_hourly_candles(self, currencies_df):
+        candles_result_df = self.spark.createDataFrame([], candle_hour_schema)
+
+        for row in currencies_df.distinct().collect():
+            current_dhi = row['dhi']
+            current_currency_name = row['CurrencyName']
+            hourly_dhi_path = datetime.fromtimestamp(current_dhi).strftime('%Y%m%d%H')
+
+            dhi_currencies_df = self.read_currencies_like_dhi(hourly_dhi_path, current_currency_name)
+
+            filled_candle_df = self.fill_candle(dhi_currencies_df, "hourCandle").first()
+
+            candles_result_row = self.spark.createDataFrame([(
+                current_currency_name,
+                current_dhi,
+                row['dht'],
+                json.dumps({
+                    "lowestPrice": filled_candle_df["hourCandle.lowestPrice"],
+                    "highestPrice": filled_candle_df["hourCandle.highestPrice"],
+                    "openingPrice": filled_candle_df["hourCandle.openingPrice"],
+                    "closurePrice": filled_candle_df["hourCandle.closurePrice"]
+                })
+            )], candle_hour_schema)
 
             candles_result_df = candles_result_df.union(candles_result_row)
 

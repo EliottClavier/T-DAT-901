@@ -7,6 +7,13 @@ candle_schema = StructType([
     StructField("minuteCandle", StringType(), True)
 ])
 
+candle_hour_schema = StructType([
+    StructField("CurrencyName", StringType(), True),
+    StructField("dhi", LongType(), True),
+    StructField("dht", LongType(), True),
+    StructField("hourCandle", StringType(), True)
+])
+
 datamart_schema = StructType([
     StructField("CurrencyName", StringType(), False),
     StructField("ExchangeName", StringType(), False),
