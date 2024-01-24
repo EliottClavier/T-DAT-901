@@ -3,8 +3,8 @@ from unittest import mock
 from pyspark.testing.utils import assertDataFrameEqual
 
 from spark.apps.src.launch.exchanges.preprocess.ExchangesRawDataPreprocess import ExchangesRawDataPreprocess
-from spark.apps.src.install.exchanges.raw.schema import raw_schema
-from spark.apps.src.install.exchanges.input.schema import input_schema
+from spark.apps.src.install.exchanges.schema.raw.schema import raw_schema
+from spark.apps.src.install.exchanges.schema.input.schema import input_schema
 from spark.apps.test.config.DefaultTestCase import DefaultTestCase
 from spark.apps.test.resources.preprocess.exchanges.raw.config import root_path, relative_root_path, test_dht
 from spark.apps.test.config.transform.TransformTest import test_transform

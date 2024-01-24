@@ -33,7 +33,7 @@ namespace Domain
         }
         public string ToJson()
         {
-            return $"{{\"TradeId\": \"{TradeId}\"   \"Price\": \"{Price}\", \"Quantity\": \"{Quantity}\", \"CurrencySymbol\": \"{CurrencySymbol}\", \"TimeStamp\": {TimeStamp}, \"ExchangeName\": \"{ExchangeName}\" }}";
+            return $"{{\"TradeId\": \"{TradeId}\", \"Price\": \"{Price}\", \"Quantity\": \"{Quantity}\", \"CurrencySymbol\": \"{CurrencySymbol}\", \"TimeStamp\": {TimeStamp}, \"ExchangeName\": \"{ExchangeName}\" }}";
         }
     }
 }
