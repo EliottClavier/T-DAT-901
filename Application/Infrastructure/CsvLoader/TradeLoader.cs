@@ -71,6 +71,5 @@ public class TradeLoader
         Console.Write(" ");
         Console.WriteLine(batchJson);
         await _kafkaProducerService.ProduceAsync(batchJson, topic);
-
     }
 }
