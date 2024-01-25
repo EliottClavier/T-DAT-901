@@ -41,9 +41,9 @@ namespace Infrastructure.Socket
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-        //    StartStreamingAsync(new DataTradeConfig("Binance"));
+            StartStreamingAsync(new DataTradeConfig("Binance"));
 
-        //    OnTradeReceived += OnTradeReceivedHandler;
+            OnTradeReceived += OnTradeReceivedHandler;
 
             return Task.CompletedTask;
         }
