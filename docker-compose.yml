@@ -18,6 +18,14 @@ services:
       KAFKA__TRANSACTION_TOPIC: ${KAFKA__TRANSACTION_TOPIC}
     networks:
       producer-net:
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '2'
+          memory: 2G
 
   zookeeper:
     container_name: zookeeper
@@ -90,6 +98,14 @@ services:
       consumer-net:
         ipv4_address: ${CONSUMER_RANGE}4
       influxdb-net:
+    deploy:
+      resources:
+        limits:
+          cpus: '3'
+          memory: 3G
+        reservations:
+          cpus: '3'
+          memory: 3G
 
   spark-worker:
     image: bitnami/spark:latest
@@ -103,6 +119,14 @@ services:
       SPARK_MASTER_URL: spark://${CONSUMER_RANGE}4:${SPARK_MASTER_PORT}
     networks:
       consumer-net:
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '2'
+          memory: 2G
 
   influxdb:
     container_name: influxdb
