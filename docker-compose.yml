@@ -57,7 +57,7 @@ services:
   spark-master:
     container_name: spark-master
     build:
-      context: ./spark
+      context: ./spark/apps
     depends_on:
       - app
       - zookeeper
@@ -77,10 +77,13 @@ services:
       KAFKA_DEFAULT_TOPIC: ${KAFKA__DEFAULT_TOPIC}
       KAFKA_TRANSACTION_TOPIC: ${KAFKA__TRANSACTION_TOPIC}
       INFLUXDB_HOST: influxdb
-      INFLUXDB_PORT: ${INFLUXDB_PORT}
-      INFLUXDB_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
-      INFLUXDB_ORG: ${INFLUXDB_ORG}
+      INFLUXDB_V2_URL: http://influxdb:${INFLUXDB_PORT}
+      INFLUXDB_V2_TOKEN: ${INFLUXDB_V2_TOKEN}
+      INFLUXDB_V2_ORG: ${INFLUXDB_V2_ORG}
+      INFLUXDB_V2_VERIFY_SSL: false
       INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+    volumes:
+      - spark-data:/opt/bitnami/spark/spark/data
     networks:
       consumer-net:
         ipv4_address: ${CONSUMER_RANGE}4
@@ -109,9 +112,9 @@ services:
       DOCKER_INFLUXDB_INIT_MODE: setup
       DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_USER}
       DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD}
-      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_V2_ORG}
       DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_BUCKET}
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_V2_TOKEN}
       # DOCKER_INFLUXDB_INIT_RETENTION: 1h
     ports:
       - "${INFLUXDB_PORT}:${INFLUXDB_PORT}"
@@ -163,3 +166,4 @@ volumes:
   influxdb-data:
   influxdb-config:
   grafana-data:
+  spark-data:
