@@ -47,6 +47,7 @@ class CurrenciesDatamart:
                 .tag("CurrencyName", row['CurrencyName']) \
                 .field("ExchangeName", row['ExchangeName']) \
                 .field("Price", row['Price']) \
+                .field("Volume24H", row['Volume24H']) \
                 .field("dht", row['dht']) \
                 .time(datetime.fromtimestamp(row['dhi']))
             self.write_api.write(bucket="crypto_db", record=point)

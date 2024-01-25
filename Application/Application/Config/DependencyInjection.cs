@@ -1,6 +1,7 @@
 ﻿using Core;
 using Domain;
 using Domain.Ports;
+using Infrastructure.Kafka;
 using Infrastructure.Socket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,15 @@ namespace Application.Config
             services.Configure<WebSocketConfig>(configuration.GetSection("WebSocketConfig"));
             // Ajoute la classe WebSocketConfig comme service
             services.AddSingleton(provider => provider.GetRequiredService<IOptions<WebSocketConfig>>().Value);
+
+            //// Configuration Kafka
+            //services.Configure<KafkaSettings>(configuration.GetSection("KAFKA"));
+
+            //// Enregistrement du KafkaProducerService
+            //services.AddSingleton<KafkaProducerService>();
+
+            // Enregistrement du HistoricalTradeService
+            services.AddSingleton<HistoricalTradeService>();
 
             return services;
         }
