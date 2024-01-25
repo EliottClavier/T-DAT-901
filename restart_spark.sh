@@ -2,11 +2,6 @@
 
 source ./env/.env
 
-mkdir -p "grafana-data"
-mkdir -p "spark-data"
-
-sh ./stop_app.sh &&
-docker-compose --env-file ./env/.env up --scale spark-worker=2 -d &&
 docker cp -L spark spark-master:/opt/bitnami/spark/ &&
 docker exec -u root spark-master chown -R 1001:1001 /opt/bitnami/spark/spark/ &&
 docker exec --env-file ./env/.env spark-master spark-submit \
@@ -15,5 +10,5 @@ docker exec --env-file ./env/.env spark-master spark-submit \
       --conf spark.executor.memory=3g \
       --conf spark.executor.cores=3 \
       --conf spark.driver.memory=2g \
-      --conf spark.driver.cores=4 \
+      --conf spark.driver.cores=2 \
       spark/apps/main.py
