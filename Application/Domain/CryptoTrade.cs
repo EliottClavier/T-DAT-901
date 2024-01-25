@@ -31,9 +31,24 @@ namespace Domain
         {
             ExchangeName = exchangeName;
         }
+
+        public CryptoTrade()
+        {
+
+        }
+
+        public CryptoTrade(string tradeId, string price, string quantity, long timeStamp, string? currencySymbol, string? exchangeName = "binance")
+        {
+            Price = price;
+            Quantity = quantity;
+            CurrencySymbol = currencySymbol;
+            TimeStamp = timeStamp;
+            TradeId = tradeId;
+            ExchangeName = exchangeName;
+        }
         public string ToJson()
         {
-            return $"{{\"TradeId\": \"{TradeId}\"   \"Price\": \"{Price}\", \"Quantity\": \"{Quantity}\", \"CurrencySymbol\": \"{CurrencySymbol}\", \"TimeStamp\": {TimeStamp}, \"ExchangeName\": \"{ExchangeName}\" }}";
+            return $"{{\"TradeId\": \"{TradeId}\", \"Price\": \"{Price}\", \"Quantity\": \"{Quantity}\", \"CurrencySymbol\": \"{CurrencySymbol}\", \"TimeStamp\": {TimeStamp}, \"ExchangeName\": \"{ExchangeName}\" }}";
         }
     }
 }

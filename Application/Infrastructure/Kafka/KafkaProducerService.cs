@@ -38,7 +38,7 @@ public class KafkaProducerService : IDisposable
             Console.WriteLine(ex.Message);
         }
     }
-    public  void Produce(string message, string? topic = null)
+    public void Produce(string message, string? topic = null)
     {
         try
         {
