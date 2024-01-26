@@ -7,6 +7,5 @@ datamart_schema = StructType([
     StructField("MinuteAggregate", DoubleType(), True),
     StructField("CurrencySymbol", StringType(), True),
     StructField("dhi", LongType(), False),
-    StructField("ExchangeName", StringType(), False),
     StructField("dht", LongType(), False)
 ])

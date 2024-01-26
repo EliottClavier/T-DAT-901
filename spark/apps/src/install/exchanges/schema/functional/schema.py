@@ -6,7 +6,6 @@ functional_schema = StructType([
     StructField("Quantity", DoubleType(), True),
     StructField("CurrencySymbol", StringType(), True),
     StructField("dhi", LongType(), False),
-    StructField("ExchangeName", StringType(), False),
     StructField("dht", LongType(), False)
 ])
 

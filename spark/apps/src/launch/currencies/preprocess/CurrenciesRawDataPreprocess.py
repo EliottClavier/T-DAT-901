@@ -34,4 +34,4 @@ class CurrenciesRawDataPreprocess:
 
         parsed_df.write \
             .mode("append") \
-            .parquet(config.absolute_output_path)
+            .json(config.absolute_output_path)

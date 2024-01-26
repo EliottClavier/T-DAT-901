@@ -20,7 +20,7 @@ class CurrenciesFunctionalDataAnalyze:
         return self.spark.readStream \
             .schema(raw_schema) \
             .option("cleanSource", "delete") \
-            .parquet(config.absolute_input_path)
+            .json(config.absolute_input_path)
 
     def write_partitioned_row(self, row):
         dhi = datetime.fromtimestamp(row['dhi'])
@@ -29,7 +29,7 @@ class CurrenciesFunctionalDataAnalyze:
             .drop("dhi") \
             .write \
             .mode("append") \
-            .parquet(f"{config.absolute_output_path}/dhi={dhi.strftime('%Y%m%d%H%M')}")
+            .json(f"{config.absolute_output_path}/dhi={dhi.strftime('%Y%m%d%H%M')}")
 
     def transform(self, input_df, epoch_id):
         input_df = (input_df
@@ -45,5 +45,5 @@ class CurrenciesFunctionalDataAnalyze:
 
         output_df.write \
             .mode("append") \
-            .parquet(config.absolute_output_tmp_path)
+            .json(config.absolute_output_tmp_path)
 

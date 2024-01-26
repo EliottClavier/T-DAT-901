@@ -29,30 +29,28 @@ class ExchangesDatamart:
         return self.spark.readStream \
             .schema(functional_schema) \
             .option("cleanSource", "delete") \
-            .parquet(config.absolute_input_tmp_path)
+            .json(config.absolute_input_tmp_path)
 
     def write_to_influx_db(self, output_df):
         pandas_df = output_df.toPandas()
 
         # Write each row as a point to InfluxDB
         for index, row in pandas_df.iterrows():
-            timestamp = datetime.fromtimestamp(round(row['dhi']/1000))
             point = Point("CryptoExchange") \
                 .tag("CurrencySymbol", row['CurrencySymbol']) \
                 .field("TradeId", row['TradeId']) \
-                .field("ExchangeName", row['ExchangeName']) \
                 .field("MinuteAggregate", row['MinuteAggregate']) \
                 .field("Price", row['Price']) \
                 .field("Quantity", row['Quantity']) \
                 .field("dht", row['dht']) \
-                .time(timestamp)
+                .time(datetime.strptime(row['dhi'], '%Y%m%d%H%M%S'))
             self.write_api.write(bucket="crypto_db", record=point)
 
     def read_exchanges_like_dhi(self, dhi_path: str, currency_symbol: str) -> DataFrame:
         return self.spark.read \
             .option("basePath", DatamartExchangesConfig.absolute_input_path) \
             .option("mergeSchema", "true") \
-            .parquet(f"{DatamartExchangesConfig.absolute_input_path}/dhi={dhi_path}*") \
+            .json(f"{DatamartExchangesConfig.absolute_input_path}/dhi={dhi_path}*") \
             .filter(col("CurrencySymbol") == currency_symbol)
 
     def calculate_quantity(self, exchanges_df: DataFrame, column_type: str) -> DataFrame:
@@ -66,9 +64,8 @@ class ExchangesDatamart:
     def aggregate_exchanges(self, exchanges_df):
         aggregate_exchanges_df = self.spark.createDataFrame([], datamart_schema)
         for row in exchanges_df.distinct().collect():
-            current_dhi = round(row['dhi']/1000)
             current_currency_symbol = row['CurrencySymbol']
-            minute_dhi_path = datetime.fromtimestamp(current_dhi).strftime('%Y%m%d%H%M')
+            minute_dhi_path = datetime.fromtimestamp(row['dhi']).strftime('%Y%m%d%H%M')
 
             dhi_exchanges_df = self.read_exchanges_like_dhi(minute_dhi_path, current_currency_symbol)
 
@@ -81,7 +78,6 @@ class ExchangesDatamart:
                 exchange_aggregated_df['MinuteAggregate'],
                 current_currency_symbol,
                 row['dhi'],
-                row['ExchangeName'],
                 row['dht'],
             )], datamart_schema)
 

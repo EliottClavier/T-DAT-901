@@ -1,4 +1,4 @@
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, from_unixtime, date_format
 from datetime import datetime
 from spark.apps.src.config.SparkSessionCustom import SparkSessionCustom
 from spark.apps.src.install.exchanges.schema.functional.schema import functional_schema
@@ -20,17 +20,26 @@ class ExchangesFunctionalDataAnalyze(SparkSessionCustom):
         return self.spark.readStream \
             .schema(raw_schema) \
             .option("cleanSource", "delete") \
-            .parquet(config.absolute_input_path)
+            .json(config.absolute_input_path)
 
     def write_partitioned_row(self, row):
-        timestamp_seconds = row['dhi'] / 1000
-        dhi = datetime.fromtimestamp(timestamp_seconds)
+        dhi = datetime.fromtimestamp(row['dhi'])
         output_row_df = self.spark.createDataFrame([row], functional_schema)
         output_row_df \
             .drop("dhi") \
             .write \
             .mode("append") \
-            .parquet(f"{config.absolute_output_path}/dhi={dhi.strftime('%Y%m%d%H%M')}")
+            .json(f"{config.absolute_output_path}/dhi={dhi.strftime('%Y%m%d%H%M')}")
+
+    def write_partitioned_df(self, df):
+        # Convertir 'dhi' en format de date pour le partitionnement
+        formatted_df = df.withColumn("dhi", date_format(from_unixtime(col("dhi")), 'yyyyMMddHHmm'))
+    
+        # Écrire le DataFrame en partitionnant par 'dhi_formatted'
+        formatted_df.write \
+            .partitionBy("dhi") \
+            .mode("append") \
+            .json(config.absolute_output_path)
 
     def transform(self, input_df, epoch_id):
         input_df = (input_df
@@ -41,9 +50,11 @@ class ExchangesFunctionalDataAnalyze(SparkSessionCustom):
                                     .cast(field.dataType)
                                     .alias(field.name) for field in functional_schema.fields])
 
-        for row in output_df.collect():
-            self.write_partitioned_row(row)
+        # for row in output_df.collect():
+        #     self.write_partitioned_row(row)
+
+        self.write_partitioned_df(output_df)
 
         output_df.write \
             .mode("append") \
-            .parquet(config.absolute_output_tmp_path)
+            .json(config.absolute_output_tmp_path)

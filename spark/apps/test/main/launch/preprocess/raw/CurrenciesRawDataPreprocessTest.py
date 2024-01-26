@@ -49,13 +49,13 @@ class CurrenciesRawDataPreprocessTest(DefaultTestCase):
                             .read
                             .schema(raw_schema)
                             .option("mergeSchema", "true")
-                            .parquet(f'{test_root_path}/expected'))
+                            .json(f'{test_root_path}/expected'))
 
                 actual = (self.spark
                           .read
                           .schema(raw_schema)
                           .option("mergeSchema", "true")
-                          .parquet(f'{parquet_path}/part*.parquet'))
+                          .json(f'{parquet_path}/part*.json'))
 
                 assertDataFrameEqual(actual, expected)
                 mock.patch.dict(os.environ, {"PARQUET_PATH": ""}).stop()

@@ -1,6 +1,6 @@
 import os
 from spark.apps.src.launch.exchanges.LaunchExchangesConfig import RawExchangesConfig as config
-from pyspark.sql.functions import lit, from_json, col
+from pyspark.sql.functions import lit, udf, col
 from spark.apps.src.config.SparkSessionCustom import SparkSessionCustom
 from spark.apps.src.install.exchanges.schema.input.schema import input_schema
 from spark.apps.src.launch.common.utils import parse_kafka_df, get_dht
@@ -30,8 +30,12 @@ class ExchangesRawDataPreprocess(SparkSessionCustom):
 
         parsed_df = parsed_df.na.drop()
 
+        fix_timestamp = udf(lambda x: str(round(float(x) / 1000)), input_schema["TimeStamp"].dataType)
+
         parsed_df = parsed_df.withColumn("part_dht", lit(str(dht)))
+
+        parsed_df = parsed_df.withColumn("TimeStamp", fix_timestamp(col("TimeStamp")))
 
         parsed_df.write \
             .mode("append") \
-            .parquet(config.absolute_output_path)
+            .json(config.absolute_output_path)

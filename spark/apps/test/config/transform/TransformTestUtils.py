@@ -31,7 +31,7 @@ class TransformTestUtils:
 
         format_df.write \
             .mode("overwrite") \
-            .parquet(parquet_path)
+            .json(parquet_path)
 
     @staticmethod
     def convert_tests_files_to_parquet(spark, test_root_path, file_format, tests_names, file_paths_names):
