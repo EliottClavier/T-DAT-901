@@ -14,31 +14,40 @@ using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Scraper
 {
-    public class CryptoScrapperFactory
+    public class CryptoScrapperFactory : IDisposable
     {
         private readonly ILogger _logger;
+        private readonly ChromWebDriverFactory _driver;
+        private ChromWebDriverFactory _driverFactory;
+        private CryptoScraperService _scraperService;
 
-        public CryptoScrapperFactory( ILogger logger) {
-        
-        _logger = logger;
+        public CryptoScrapperFactory(ILogger logger)
+        {
+
+            _logger = logger;
 
         }
 
-        public ICryptoScraperService Create(ExchangeScrappingInfo info )
+        public ICryptoScraperService Create(ExchangeScrappingInfo info)
         {
             if (info != null)
             {
-                var driverFactory = new ChromWebDriverFactory(_logger);
+                _driverFactory = new ChromWebDriverFactory(_logger);
+                _scraperService = new CryptoScraperService(info, _driverFactory.CreateDriver());
 
-                var scraperService = new CryptoScraperService(info, driverFactory.CreateDriver());
-               
-                return scraperService;                          
-     
+                return _scraperService;
+
             }
             else
             {
                 throw new KeyNotFoundException();
             }
+        }
+
+        public void Dispose()
+        {
+            _scraperService?.Dispose();
+            _driverFactory?.Dispose();
         }
     }
 

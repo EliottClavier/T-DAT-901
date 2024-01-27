@@ -5,7 +5,6 @@ namespace Application
 {
     public class HistoricalTradeService
     {
-        private HttpClient client = new HttpClient();
         private IOptions<KafkaSettings> _kafkaSettings;
         private KafkaProducerService _kafkaProducerService;
 
