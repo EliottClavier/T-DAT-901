@@ -18,7 +18,7 @@ class CandleBuilder:
         return self.spark.read \
             .option("basePath", DatamartCurrenciesConfig.absolute_input_path) \
             .option("mergeSchema", "true") \
-            .json(f"{DatamartCurrenciesConfig.absolute_input_path}/dhi={dhi_path}*") \
+            .parquet(f"{DatamartCurrenciesConfig.absolute_input_path}/dhi={dhi_path}*") \
             .filter(col("CurrencyName") == currency_name)
 
     def fill_candle(self, currencies_df: DataFrame, candle_column_name: str) -> DataFrame:

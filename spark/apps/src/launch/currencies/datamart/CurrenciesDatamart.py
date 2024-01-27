@@ -26,7 +26,7 @@ class CurrenciesDatamart:
         return self.spark.readStream \
             .schema(functional_schema) \
             .option("cleanSource", "delete") \
-            .json(config.absolute_input_tmp_path)
+            .parquet(config.absolute_input_tmp_path)
 
     def write_candle_to_influx_db(self, candle_df):
         pandas_df = candle_df.toPandas()

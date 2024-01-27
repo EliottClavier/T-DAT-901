@@ -20,7 +20,7 @@ class ExchangesFunctionalDataAnalyze(SparkSessionCustom):
         return self.spark.readStream \
             .schema(raw_schema) \
             .option("cleanSource", "delete") \
-            .json(config.absolute_input_path)
+            .parquet(config.absolute_input_path)
 
     def write_partitioned_row(self, row):
         dhi = datetime.fromtimestamp(row['dhi'])
@@ -29,7 +29,7 @@ class ExchangesFunctionalDataAnalyze(SparkSessionCustom):
             .drop("dhi") \
             .write \
             .mode("append") \
-            .json(f"{config.absolute_output_path}/dhi={dhi.strftime('%Y%m%d%H%M')}")
+            .parquet(f"{config.absolute_output_path}/dhi={dhi.strftime('%Y%m%d%H%M')}")
 
     def write_partitioned_df(self, df):
         # Convertir 'dhi' en format de date pour le partitionnement
@@ -37,9 +37,9 @@ class ExchangesFunctionalDataAnalyze(SparkSessionCustom):
     
         # Écrire le DataFrame en partitionnant par 'dhi_formatted'
         formatted_df.write \
-            .partitionBy("dhi") \
+            .partitionBy("CurrencySymbol", "dhi") \
             .mode("append") \
-            .json(config.absolute_output_path)
+            .parquet(config.absolute_output_path)
 
     def transform(self, input_df, epoch_id):
         input_df = (input_df
@@ -57,4 +57,4 @@ class ExchangesFunctionalDataAnalyze(SparkSessionCustom):
 
         output_df.write \
             .mode("append") \
-            .json(config.absolute_output_tmp_path)
+            .parquet(config.absolute_output_tmp_path)
