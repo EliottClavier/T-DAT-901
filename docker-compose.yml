@@ -23,11 +23,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '3'
-          memory: 3G
+          cpus: '2'
+          memory: 2G
         reservations:
-          cpus: '3'
-          memory: 3G
+          cpus: '2'
+          memory: 2G
 
   zookeeper:
     container_name: zookeeper
