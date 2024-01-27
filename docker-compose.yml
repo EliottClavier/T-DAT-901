@@ -13,6 +13,8 @@ services:
       - "80:80"
       - "443:443"
     environment:
+      ENABLE_STREAMER: ${ENABLE_STREAMER}
+      ENABLE_SCRAPER: ${ENABLE_SCRAPER}
       KAFKA__BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}
       KAFKA__DEFAULT_TOPIC: ${KAFKA__DEFAULT_TOPIC}
       KAFKA__TRANSACTION_TOPIC: ${KAFKA__TRANSACTION_TOPIC}
@@ -21,11 +23,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
-          memory: 2G
+          cpus: '3'
+          memory: 3G
         reservations:
-          cpus: '2'
-          memory: 2G
+          cpus: '3'
+          memory: 3G
 
   zookeeper:
     container_name: zookeeper
