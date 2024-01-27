@@ -12,7 +12,7 @@ namespace Infrastructure.WebDriver
     using OpenQA.Selenium.Chrome;
     using OpenQA.Selenium.Remote;
 
-    public class ChromWebDriverFactory
+    public class ChromWebDriverFactory : IDisposable
     {
         private ILogger _logger;
         private ChromeDriver _driver;
@@ -37,16 +37,20 @@ namespace Infrastructure.WebDriver
             options.AddArgument("--lang=en-US");
             options.SetLoggingPreference(LogType.Driver, OpenQA.Selenium.LogLevel.All);
 
-            var driver = new ChromeDriver(ChromeDriverService.CreateDefaultService(), options, TimeSpan.FromMinutes(3));
+            _driver = new ChromeDriver(ChromeDriverService.CreateDefaultService(), options, TimeSpan.FromMinutes(3));
 
-            driver.Manage().Timeouts().PageLoad.Add(TimeSpan.FromSeconds(30));
+            _driver.Manage().Timeouts().PageLoad.Add(TimeSpan.FromSeconds(30));
 
-            _logger.LogInformation(driver.SessionId.ToString());
+            _logger.LogInformation(_driver.SessionId.ToString());
 
-            return driver;
+            return _driver;
 
         }
 
+        public void Dispose()
+        {
+            _driver.Dispose();
+        }
     }
 
 

@@ -15,35 +15,29 @@ namespace Application.Config
         public static IServiceCollection AddApplication(this IServiceCollection services,
             IConfiguration configuration)
         {
-            
-            services.AddHostedService<CryptoHostedService>();
-            services.AddHostedService<WebSocketStreamer>();
-            services.AddSingleton<IExchangeScrappingInfoProvider, AppConfigExchangeScrappingInfoProvider>();
+            var enableScraper = configuration.GetValue<bool>("ENABLE_SCRAPER");
+            if (enableScraper)
+            {
+                services.AddHostedService<CryptoHostedService>();
+                services.AddSingleton<IExchangeScrappingInfoProvider, AppConfigExchangeScrappingInfoProvider>();
 
-            // Ajoute la configuration de la classe WebSocketConfig
-            services.Configure<WebSocketConfig>(configuration.GetSection("WebSocketConfig"));
-            // Ajoute la classe WebSocketConfig comme service
-            services.AddSingleton(provider => provider.GetRequiredService<IOptions<WebSocketConfig>>().Value);
+            }
 
-            //// Configuration Kafka
-            //services.Configure<KafkaSettings>(configuration.GetSection("KAFKA"));
+            var enableStreamer = configuration.GetValue<bool>("ENABLE_STREAMER");
+            if (enableStreamer)
+            {
+                services.AddHostedService<WebSocketStreamer>();
+                services.Configure<WebSocketConfig>(configuration.GetSection("WebSocketConfig"));
+                services.AddSingleton(provider => provider.GetRequiredService<IOptions<WebSocketConfig>>().Value);
 
-            //// Enregistrement du KafkaProducerService
-            //services.AddSingleton<KafkaProducerService>();
+            }
+
 
             // Enregistrement du HistoricalTradeService
             services.AddSingleton<HistoricalTradeService>();
 
             return services;
         }
-        //public static IServiceCollection AddApplicationCMD(this IServiceCollection services,
-        //    IConfiguration configuration)
-        //{
-
-        //    services.AddSingleton<CryptoHostedService>();
-
-        //    return services;
-        //}
     }
 }
 

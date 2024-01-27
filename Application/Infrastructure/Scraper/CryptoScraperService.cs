@@ -11,17 +11,13 @@ namespace Infrastructure.Scraper
     {
         private readonly IWebDriver _driver;
         private readonly ExchangeScrappingInfo _info;
+        private WebDriverWait _wait;
 
         public CryptoScraperService(ExchangeScrappingInfo info, IWebDriver webDriver)
         {
             _info = info;
             _driver = webDriver;
         }
-        ~CryptoScraperService()
-        {
-
-        }
-
         private void NavigateToUrl()
         {
             if (_driver?.Url != _info?.Url)
@@ -42,10 +38,13 @@ namespace Infrastructure.Scraper
 
         private string ExtractData(string xpath)
         {
-            try {               
-          
-            var wait = new WebDriverWait(_driver, _driver.Manage().Timeouts().AsynchronousJavaScript);
-            var element = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementExists(By.XPath(xpath)));
+            try {
+
+                if (_wait == null)
+                {
+                    _wait = new WebDriverWait(_driver, _driver.Manage().Timeouts().AsynchronousJavaScript);
+                }
+                var element = _wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementExists(By.XPath(xpath)));
           
             return (string)((IJavaScriptExecutor)_driver).ExecuteScript("return arguments[0].innerText;", element);
             }
