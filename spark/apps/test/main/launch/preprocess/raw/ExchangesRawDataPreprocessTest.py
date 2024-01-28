@@ -21,7 +21,7 @@ class ExchangesRawDataPreprocessTest(DefaultTestCase):
             ("tu3", "Multliples lines to add"),
         ]
         cls.test_files_path_names = ["expected", "inputRaw"]
-        cls.input_format = "json"
+        cls.input_format = "parquet"
         cls.root_path = root_path
 
     @test_transform
@@ -35,9 +35,9 @@ class ExchangesRawDataPreprocessTest(DefaultTestCase):
                 input_df = (self.spark
                             .readStream
                             .option("inferSchema", "true")
-                            .format("json")
+                            .format("parquet")
                             .schema(input_schema)
-                            .load(f'{test_root_path}/exchanges*.json'))
+                            .load(f'{test_root_path}/exchanges*.parquet'))
 
                 mock.patch.dict(os.environ, {"PARQUET_PATH": f'{relative_parquet_path}',
                                              "PARQUET_CHECKPOINT_LOCATION": f'{relative_parquet_path}/checkpoint',
@@ -49,13 +49,13 @@ class ExchangesRawDataPreprocessTest(DefaultTestCase):
                             .read
                             .schema(raw_schema)
                             .option("mergeSchema", "true")
-                            .json(f'{test_root_path}/expected'))
+                            .parquet(f'{test_root_path}/expected'))
 
                 actual = (self.spark
                           .read
                           .schema(raw_schema)
                           .option("mergeSchema", "true")
-                          .json(f'{parquet_path}/part*.json'))
+                          .parquet(f'{parquet_path}/part*.parquet'))
 
                 assertDataFrameEqual(actual, expected)
                 mock.patch.dict(os.environ, {"PARQUET_PATH": ""}).stop()
