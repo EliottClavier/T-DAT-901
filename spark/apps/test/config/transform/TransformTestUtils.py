@@ -20,7 +20,7 @@ class TransformTestUtils:
             TransformTestUtils.clean_input_directory(directory)
 
     @staticmethod
-    def convert_file_to_parquet(spark, file_path, parquet_path, file_format="json"):
+    def convert_file_to_parquet(spark, file_path, parquet_path, file_format="parquet"):
         format_df = spark \
             .read \
             .format(file_format) \

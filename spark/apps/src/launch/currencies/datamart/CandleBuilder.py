@@ -66,10 +66,10 @@ class CandleBuilder:
                 current_dhi,
                 row['dht'],
                 json.dumps({
-                    "lowestPrice": filled_candle_df["minuteCandle.lowestPrice"],
-                    "highestPrice": filled_candle_df["minuteCandle.highestPrice"],
-                    "openingPrice": filled_candle_df["minuteCandle.openingPrice"],
-                    "closurePrice": filled_candle_df["minuteCandle.closurePrice"]
+                    "lowestPrice": str(filled_candle_df["minuteCandle.lowestPrice"]),
+                    "highestPrice": str(filled_candle_df["minuteCandle.highestPrice"]),
+                    "openingPrice": str(filled_candle_df["minuteCandle.openingPrice"]),
+                    "closurePrice": str(filled_candle_df["minuteCandle.closurePrice"])
                 })
             )], candle_schema)
 
