@@ -1,43 +1,41 @@
-import datetime
 import os
-
-from pyspark.sql.functions import lit, col
+from spark.apps.src.launch.exchanges.LaunchExchangesConfig import RawExchangesConfig as config
+from pyspark.sql.functions import lit, udf, col
 from spark.apps.src.config.SparkSessionCustom import SparkSessionCustom
+from spark.apps.src.install.exchanges.schema.input.schema import input_schema
+from spark.apps.src.launch.common.utils import parse_kafka_df, get_dht
 
 
 class ExchangesRawDataPreprocess(SparkSessionCustom):
-    raw_stream = None
-
-    def __init__(self):
-        super().__init__()
+    def __init__(self, spark):
+        self.spark = spark
         self.raw_stream = self.read_from_kafka()
 
     def start(self):
-        self.raw_stream.foreachBatch(self.transform)
+        self.raw_stream.writeStream \
+            .foreachBatch(self.transform) \
+            .start()
 
     def read_from_kafka(self):
         return self.spark.readStream \
             .format("kafka") \
             .option("kafka.bootstrap.servers", os.environ["KAFKA_BOOTSTRAP_SERVERS"]) \
-            .option("subscribe", os.environ["KAFKA_DEFAULT_TOPIC"]) \
+            .option("subscribe", os.environ["KAFKA_TRANSACTION_TOPIC"]) \
             .load()
 
-    @staticmethod
-    def transform(input_df):
-        dht = os.environ["DHT"] if os.environ["DHT"] is not None else datetime.now().timestamp()
+    def transform(self, input_df, epoch_id):
+        dht = get_dht()
 
-        # Add technical field
-        input_df = input_df \
-            .withColumn("part_dht", lit(dht))
+        parsed_df = parse_kafka_df(input_df, input_schema)
 
-        string_columns = [col(column).cast("string").alias(column) for column in input_df.columns]
-        raw_stream_df = input_df.select(*string_columns)
+        parsed_df = parsed_df.na.drop()
 
-        # Éliminer les lignes avec des valeurs nulles
-        raw_stream_df = raw_stream_df.na.drop()
+        fix_timestamp = udf(lambda x: str(round(float(x) / 1000)), input_schema["TimeStamp"].dataType)
 
-        return (raw_stream_df.writeStream
-                .outputMode("append")
-                .format("parquet")
-                .option("checkpointLocation", os.environ["PARQUET_CHECKPOINT_LOCATION"])
-                .start(os.environ["PARQUET_PATH"]))
+        parsed_df = parsed_df.withColumn("part_dht", lit(str(dht)))
+
+        parsed_df = parsed_df.withColumn("TimeStamp", fix_timestamp(col("TimeStamp")))
+
+        parsed_df.write \
+            .mode("append") \
+            .parquet(config.absolute_output_path)

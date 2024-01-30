@@ -3,8 +3,8 @@ from unittest import mock
 from pyspark.testing.utils import assertDataFrameEqual
 
 from spark.apps.src.launch.exchanges.preprocess.ExchangesRawDataPreprocess import ExchangesRawDataPreprocess
-from spark.apps.src.install.exchanges.raw.schema import raw_schema
-from spark.apps.src.install.exchanges.input.schema import input_schema
+from spark.apps.src.install.exchanges.schema.raw.schema import raw_schema
+from spark.apps.src.install.exchanges.schema.input.schema import input_schema
 from spark.apps.test.config.DefaultTestCase import DefaultTestCase
 from spark.apps.test.resources.preprocess.exchanges.raw.config import root_path, relative_root_path, test_dht
 from spark.apps.test.config.transform.TransformTest import test_transform
@@ -21,7 +21,7 @@ class ExchangesRawDataPreprocessTest(DefaultTestCase):
             ("tu3", "Multliples lines to add"),
         ]
         cls.test_files_path_names = ["expected", "inputRaw"]
-        cls.input_format = "json"
+        cls.input_format = "parquet"
         cls.root_path = root_path
 
     @test_transform
@@ -35,9 +35,9 @@ class ExchangesRawDataPreprocessTest(DefaultTestCase):
                 input_df = (self.spark
                             .readStream
                             .option("inferSchema", "true")
-                            .format("json")
+                            .format("parquet")
                             .schema(input_schema)
-                            .load(f'{test_root_path}/exchanges*.json'))
+                            .load(f'{test_root_path}/exchanges*.parquet'))
 
                 mock.patch.dict(os.environ, {"PARQUET_PATH": f'{relative_parquet_path}',
                                              "PARQUET_CHECKPOINT_LOCATION": f'{relative_parquet_path}/checkpoint',
