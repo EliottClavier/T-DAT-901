@@ -43,11 +43,8 @@ namespace Infrastructure.Socket
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            //await Task.Delay(10000);
-            await _historicalTradeService.GetHistoricalTrades();
-  
-        
-        //await StartStreamingAsync(new DataTradeConfig("Binance"), cancellationToken);        
+
+            await StartStreamingAsync(new DataTradeConfig("Binance"), cancellationToken);
 
         }
 
