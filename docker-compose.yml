@@ -10,8 +10,8 @@ services:
     depends_on:
       - kafka
     ports:
-      - "80:80"
-      - "443:443"
+      - "80:5000"
+      - "443:5000"
     environment:
       ENABLE_STREAMER: ${ENABLE_STREAMER}
       ENABLE_SCRAPER: ${ENABLE_SCRAPER}
@@ -20,6 +20,8 @@ services:
       KAFKA__TRANSACTION_TOPIC: ${KAFKA__TRANSACTION_TOPIC}
     networks:
       producer-net:
+    volumes:
+      - ./Application/Data/Trades/aggTrades:/app/app-data/trades/aggTrades
     deploy:
       resources:
         limits:

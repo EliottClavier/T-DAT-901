@@ -6,15 +6,27 @@ using Domain;
 using Infrastructure.CsvLoader;
 using CsvHelper.Configuration;
 using System.Diagnostics.Metrics;
+using Microsoft.Extensions.Logging;
+using Confluent.Kafka;
 
 public class TradeLoader
 {
     private readonly KafkaProducerService _kafkaProducerService;
+    private readonly ILogger _logger;
+
 
     private ulong _numberOfbatch = 0;
     public TradeLoader(KafkaProducerService kafkaProducerService)
     {
         _kafkaProducerService = kafkaProducerService;
+        var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder
+                .AddConsole();
+        });
+
+        _logger = loggerFactory.CreateLogger<TradeLoader>();
+
     }
 
     public async Task LoadTradesFromCsvAndSendToKafka(string filePath, string topic)
@@ -64,12 +76,14 @@ public class TradeLoader
     }
     private async Task SendBatchToKafka(List<CryptoTrade> batch, string topic)
     {
-        var count = (ulong) batch.Count;
+        var count = (ulong)batch.Count;
         _numberOfbatch += count;
         var batchJson = JsonConvert.SerializeObject(batch);
-        Console.Write(_numberOfbatch);
-        Console.Write(" ");
-        Console.WriteLine(batchJson);
+        
+        _logger.LogInformation(_numberOfbatch.ToString());
+        _logger.LogInformation(" ");
+        _logger.LogInformation(batchJson);
+
         await _kafkaProducerService.ProduceAsync(batchJson, topic);
     }
 }

@@ -1,4 +1,6 @@
 ﻿using Infrastructure.Kafka;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Application
@@ -7,23 +9,35 @@ namespace Application
     {
         private IOptions<KafkaSettings> _kafkaSettings;
         private KafkaProducerService _kafkaProducerService;
-
+        private ILogger _logger;
+        
         private List<Task> _tasks = new();
         private SemaphoreSlim _semaphore = new (6);
 
-        public HistoricalTradeService(IOptions<KafkaSettings> kafkaSettings, KafkaProducerService kafkaProducer)
+        public HistoricalTradeService(IOptions<KafkaSettings> kafkaSettings, KafkaProducerService kafkaProducer, ILogger<HistoricalTradeService> logger)
         {
             _kafkaSettings = kafkaSettings;
             _kafkaProducerService = kafkaProducer;
+            _logger = logger;
+       
+
+
         }
 
         public async Task GetHistoricalTrades()
         {
+            _logger.LogInformation("GetHistoricalTrades");
+           
             var loader = new TradeLoader(_kafkaProducerService);
-            var csvFolder = "..\\Data\\Trades\\aggTrades\\";
+        
             var patternCsv = "*.csv";
-            var filePaths = Directory.GetFiles(csvFolder, patternCsv);
 
+            var csvFolder = "/app/app-data/trades/aggTrades";
+            var filePaths = Directory.GetFiles(csvFolder, patternCsv);
+            _logger.LogInformation($"Found {filePaths.Length} files");
+
+
+         
             var tasks = filePaths.Select(async filePath =>
             {
                 // Attendre qu'un slot se libère.

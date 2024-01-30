@@ -10,7 +10,7 @@ public class KafkaProducerService : IDisposable
     private string _bootstrapServers;
     private readonly string _topic;
     private readonly ILogger<KafkaProducerService> _logger;
-    private IProducer<Null, string>? producer;
+    private IProducer<Null, string>? _producer;
 
     public KafkaProducerService(IOptions<KafkaSettings> kafkaSettings, ILogger<KafkaProducerService> logger)
     {
@@ -19,7 +19,7 @@ public class KafkaProducerService : IDisposable
         _topic = kafkaSettings.Value.DefaultTopic;
         _config = new ProducerConfig { BootstrapServers = _bootstrapServers };
 
-        producer = new ProducerBuilder<Null, string>(_config).Build();
+        _producer = new ProducerBuilder<Null, string>(_config).Build();
     }
 
     public async Task ProduceAsync(string message, string? topic = null)
@@ -27,7 +27,7 @@ public class KafkaProducerService : IDisposable
         try
         {
             topic ??= _topic;
-            await producer.ProduceAsync(topic, new Message<Null, string> { Value = message });
+            await _producer.ProduceAsync(topic, new Message<Null, string> { Value = message });
         }
         catch (Exception ex)
         {
@@ -40,7 +40,7 @@ public class KafkaProducerService : IDisposable
         try
         {
             topic ??= _topic;
-            producer.Produce(topic, new Message<Null, string> { Value = message });
+            _producer.Produce(topic, new Message<Null, string> { Value = message });
         }
         catch (Exception ex)
         {
@@ -50,6 +50,6 @@ public class KafkaProducerService : IDisposable
 
     public void Dispose()
     {
-        producer?.Dispose();
+        _producer?.Dispose();
     }
 }

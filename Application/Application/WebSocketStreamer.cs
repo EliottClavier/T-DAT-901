@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using Application;
+using Domain;
 using Infrastructure.Kafka;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -17,7 +18,7 @@ namespace Infrastructure.Socket
         public event TradeReceivedHandler? OnTradeReceived;
         private readonly WebSocketConfig _webSocketConfig;
         private readonly ILogger<WebSocketStreamer> _logger;
-
+        private readonly HistoricalTradeService _historicalTradeService;
         private int _reconnectAttempts = 0;
         private const int MaxReconnectAttempts = 5;
         private const int BaseReconnectDelayMs = 1000; // 1 seconde
@@ -29,18 +30,24 @@ namespace Infrastructure.Socket
             KafkaProducerService kafkaProducerService,
             WebSocketConfig webSocketConfig,
             IOptions<KafkaSettings> kafkaSettings,
-            ILogger<WebSocketStreamer> logger
+            ILogger<WebSocketStreamer> logger,
+            HistoricalTradeService historicalTradeService
             )
         {
             _producer = kafkaProducerService;
             _webSocketConfig = webSocketConfig;
             _kafkaTopic = kafkaSettings.Value.TransactionTopic;
             _logger = logger;
+            _historicalTradeService = historicalTradeService;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            await StartStreamingAsync(new DataTradeConfig("Binance"), cancellationToken);        
+            //await Task.Delay(10000);
+            await _historicalTradeService.GetHistoricalTrades();
+  
+        
+        //await StartStreamingAsync(new DataTradeConfig("Binance"), cancellationToken);        
 
         }
 

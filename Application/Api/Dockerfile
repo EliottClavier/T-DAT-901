@@ -25,12 +25,14 @@ WORKDIR /src
 COPY ["Api/Api.csproj", "Api/"]
 COPY ["Application/Application.csproj", "Application/"]
 COPY ["Domain/Domain.csproj", "Domain/"]
+COPY ["Data/Data.csproj", "Data/"]
 COPY ["Infrastructure/Infrastructure.csproj", "Infrastructure/"]
 RUN dotnet restore "Api/Api.csproj"
 
 COPY Api/ ./Api/
 COPY Application/ ./Application/
 COPY Domain/ ./Domain/
+COPY Data/ ./Data/
 COPY Infrastructure/ ./Infrastructure/
 WORKDIR /src/Api
 RUN dotnet build "Api.csproj" -c Release -o /app/build 

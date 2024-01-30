@@ -15,6 +15,8 @@ namespace Application.Config
         public static IServiceCollection AddApplication(this IServiceCollection services,
             IConfiguration configuration)
         {
+            services.AddLogging();
+
             var enableScraper = configuration.GetValue<bool>("ENABLE_SCRAPER");
             if (enableScraper)
             {
