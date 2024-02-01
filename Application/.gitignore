@@ -7,3 +7,6 @@ vs/*
 .idea
 .vscode
 
+/Data/bin/Debug/net6.0/Data.deps.json
+/Data/bin/Debug/net6.0/Data.dll
+/Data/bin/Debug/net6.0/Data.pdb

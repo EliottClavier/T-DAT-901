@@ -43,7 +43,7 @@ var app = builder.Build();
 
 app.MapControllers();
 
-//app.MapGet("/", () => "Hello Crypto World!");/
+app.MapGet("/", () => "Hello Crypto World!");
 
 app.UseCors("front");
 
