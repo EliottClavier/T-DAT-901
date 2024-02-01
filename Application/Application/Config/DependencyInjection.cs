@@ -5,6 +5,7 @@ using Infrastructure.Kafka;
 using Infrastructure.Socket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 
@@ -35,8 +36,11 @@ namespace Application.Config
             }
 
 
-            // Enregistrement du HistoricalTradeService
-            services.AddSingleton<HistoricalTradeService>();
+            var enableHistorical = configuration.GetValue<bool>("ENABLE_HISTORICAL");
+            if (enableHistorical)
+            {
+                services.AddHostedService<HistoricalTradeService>();
+            }
 
             return services;
         }

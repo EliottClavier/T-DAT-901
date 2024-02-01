@@ -1,26 +1,35 @@
 ﻿using Infrastructure.Kafka;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Application
 {
-    public class HistoricalTradeService
+    public class HistoricalTradeService :  IHostedService, IDisposable
     {
         private IOptions<KafkaSettings> _kafkaSettings;
         private KafkaProducerService _kafkaProducerService;
         private ILogger _logger;
-        
-        private List<Task> _tasks = new();
-        private SemaphoreSlim _semaphore = new (6);
+
+        private SemaphoreSlim _semaphore;
 
         public HistoricalTradeService(IOptions<KafkaSettings> kafkaSettings, KafkaProducerService kafkaProducer, ILogger<HistoricalTradeService> logger)
         {
             _kafkaSettings = kafkaSettings;
             _kafkaProducerService = kafkaProducer;
             _logger = logger;
-       
 
+            _semaphore = new(5);
+     
+        }
+
+        public void Dispose()
+        {
+            
+            _semaphore.Release();
+            _semaphore.Dispose();
 
         }
 
@@ -58,6 +67,24 @@ namespace Application
             await Task.WhenAll(tasks);
 
         }
+
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            await Task.Run(async () =>            {
+            
+                    await Task.Delay(10000);
+                    await GetHistoricalTrades();
+                
+            }, cancellationToken);
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            Dispose();
+            return Task.CompletedTask;          
+        }
+
+
     }
 }
 
