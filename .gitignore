@@ -22,8 +22,8 @@ env/*
 __pycache__/
 *.db
 
-grafana-data/alerting
-grafana-data/csv
-grafana-data/plugins
-grafana-data/png
-!grafana-data/grafana.db
+grafana-data/storage/alerting
+grafana-data/storage/csv
+grafana-data/storage/plugins
+grafana-data/storage/png
+!grafana-data/storage/grafana.db

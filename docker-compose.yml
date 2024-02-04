@@ -170,7 +170,8 @@ services:
     ports:
       - "${GRAFANA_PORT}:${GRAFANA_PORT}"
     volumes:
-      - ./grafana-data:/var/lib/grafana
+      - ./grafana-data/storage:/var/lib/grafana
+      - ./grafana-data/grafana.ini:/etc/grafana/grafana.ini
     networks:
       grafana-net:
 
