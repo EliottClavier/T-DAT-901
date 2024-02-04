@@ -175,6 +175,26 @@ services:
     networks:
       grafana-net:
 
+  telegraf:
+    image: telegraf:latest
+    hostname: telegraf
+    container_name: telegraf
+    entrypoint: /start_telegraf.sh
+    depends_on:
+      - influxdb
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./spark/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - ./spark/telegraf/start_telegraf.sh:/start_telegraf.sh
+    environment:
+      - INFLUXDB_URL=http://influxdb:${INFLUXDB_PORT}
+      - INFLUXDB_TOKEN=${INFLUXDB_V2_TOKEN}
+      - INFLUXDB_ORG=${INFLUXDB_V2_ORG}
+      - INFLUXDB_METRICS_BUCKET=${INFLUXDB_METRICS_BUCKET}
+    networks:
+      - influxdb-net
+    restart: unless-stopped
+
 networks:
   influxdb-net:
   grafana-net:
