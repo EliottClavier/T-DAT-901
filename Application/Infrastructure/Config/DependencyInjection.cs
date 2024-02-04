@@ -13,21 +13,25 @@ namespace Infrastructure.Config
     public static class DependencyInjection
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
-        {
+        {            
 
             services.Configure<KafkaSettings>(configuration.GetSection("KAFKA"));
 
             services.AddSingleton<KafkaProducerService>();
 
-            services.AddSingleton<Func<ExchangeScrappingInfo, ICryptoScraperService>>(provider =>
+            var enableScraper = configuration.GetValue<bool>("ENABLE_SCRAPER");
+            if(enableScraper)
             {
-                var logger = provider.GetService<ILogger<CryptoScrapperFactory>>();
+                services.AddSingleton<Func<ExchangeScrappingInfo, ICryptoScraperService>>(provider =>
+                {
+                    var logger = provider.GetService<ILogger<CryptoScrapperFactory>>();
 
-                var factory = new CryptoScrapperFactory(logger);
-
-                return info => factory.Create(info);
-            });
-
+                    using (var factory = new CryptoScrapperFactory(logger))
+                    {
+                        return info => factory.Create(info);
+                    }
+                });
+            }
 
             return services;
         }

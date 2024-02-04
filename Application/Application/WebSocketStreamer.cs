@@ -1,30 +1,29 @@
-﻿using Confluent.Kafka;
+﻿using Application;
 using Domain;
 using Infrastructure.Kafka;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Socket
 {
     public delegate void TradeReceivedHandler(CryptoTrade trade);
     public class WebSocketStreamer : IHostedService, IDisposable
     {
-        private ClientWebSocket _webSocket = new ClientWebSocket();
         private readonly KafkaProducerService _producer;
         private string _kafkaTopic;
-        public event TradeReceivedHandler OnTradeReceived;
+        public event TradeReceivedHandler? OnTradeReceived;
         private readonly WebSocketConfig _webSocketConfig;
         private readonly ILogger<WebSocketStreamer> _logger;
+        private int _reconnectAttempts = 0;
+        private const int MaxReconnectAttempts = 5;
+        private const int BaseReconnectDelayMs = 1000; // 1 seconde
+        private const int MaxReconnectDelayMs = 60000; // 1 minute
 
-        private DataTradeConfig _config;
+        private DataTradeConfig? _config;
 
         public WebSocketStreamer(
             KafkaProducerService kafkaProducerService,
@@ -37,70 +36,82 @@ namespace Infrastructure.Socket
             _webSocketConfig = webSocketConfig;
             _kafkaTopic = kafkaSettings.Value.TransactionTopic;
             _logger = logger;
+        
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            StartStreamingAsync(new DataTradeConfig("Binance"));
+        
+            await StartStreamingAsync(new DataTradeConfig("Binance"), cancellationToken);
 
-            OnTradeReceived += OnTradeReceivedHandler;
-
-            return Task.CompletedTask;
         }
 
         private void OnTradeReceivedHandler(CryptoTrade trade)
         {
             _producer.Produce(trade.ToJson(), _kafkaTopic);
+            _logger.LogInformation($"Received: {trade.ToJson()}");
         }
 
-        public async Task StartStreamingAsync(DataTradeConfig config)
+        public async Task StartStreamingAsync(DataTradeConfig config, CancellationToken cancellationToken)
         {
+            OnTradeReceived += OnTradeReceivedHandler;
             _config = config;
-            while (true)
+            while (!cancellationToken.IsCancellationRequested && _reconnectAttempts < MaxReconnectAttempts)
             {
                 try
                 {
-                    _webSocket = new ClientWebSocket();
-
-                    await _webSocket.ConnectAsync(_webSocketConfig.GetCompletedUri(), CancellationToken.None);
-                    _logger.LogInformation("_webSocketConfig.GetCompletedUri() : " + _webSocketConfig.GetCompletedUri());
-                    await ListenToWebSocketAsync();
-
+                    using (var client = new ClientWebSocket())
+                    {                      
+                        await client.ConnectAsync(_webSocketConfig.GetCompletedUri(), cancellationToken);
+                        _reconnectAttempts = 0;
+                        await ListenToWebSocketAsync(client, cancellationToken);
+                    }
                 }
                 catch (Exception e)
                 {
-                    _logger.LogInformation($"WebSocket Exception: {e.Message}");
-                    await Task.Delay(5000); 
+                    _reconnectAttempts++;
+                    _logger.LogInformation($"Tentative de reconnexion {_reconnectAttempts}/{MaxReconnectAttempts}, erreur : {e.Message}");
+                    int delay = Math.Min(BaseReconnectDelayMs * (int)Math.Pow(2, _reconnectAttempts), MaxReconnectDelayMs);
+                    await Task.Delay(delay, cancellationToken);
+                  
                 }
+            }
+
+            if (_reconnectAttempts >= MaxReconnectAttempts)
+            {
+                _logger.LogError("Nombre maximal de tentatives de reconnexion atteint.");
             }
         }
 
-        private async Task ListenToWebSocketAsync()
+        private async Task ListenToWebSocketAsync(ClientWebSocket client, CancellationToken cancellationToken )
         {
             var buffer = new byte[1024 * 4];
-            while (_webSocket.State == WebSocketState.Open)
+            string message;
+            CryptoTrade trade;
+            while (client.State == WebSocketState.Open)
             {
-                var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                var trade = JsonConvert.DeserializeObject<CryptoTrade>(message);
+                var result = await client.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+                message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                trade = JsonConvert.DeserializeObject<CryptoTrade>(message);
                 trade.ExchangeName = _config.ExchangeName;
 
                 OnTradeReceived?.Invoke(trade);
-
-                _logger.LogInformation($"Received: {trade.ToJson()}");
             }
+
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            OnTradeReceived -= OnTradeReceivedHandler;
-            _producer.Dispose();
+            Dispose();
+           
+            
             return Task.CompletedTask;
         }
 
         public void Dispose()
         {
             OnTradeReceived -= OnTradeReceivedHandler;
+            _producer.Dispose();            
         }
     }
 }

@@ -30,7 +30,7 @@ namespace Core
             if (serviceFactory == null) return;
 
             _scraperServices = new List<ICryptoScraperService>();
-            foreach (var crypto in cryptoList)
+            foreach (ExchangeScrappingInfo crypto in cryptoList)
             {
                 _scraperServices.Add(serviceFactory(crypto));
             };
@@ -48,7 +48,7 @@ namespace Core
 
 
                     var jsonInfo = JsonConvert.SerializeObject(info);
-                    await _kafkaProducer.ProduceAsync(jsonInfo);
+                   await _kafkaProducer.ProduceAsync(jsonInfo);
 
                 }
             }
