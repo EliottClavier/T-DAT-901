@@ -1,68 +1,53 @@
-# T-DAT-901 - Crypto Scraper
-=====================
+# Projet d'Analyse de Cryptomonnaie
 
-Ce projet utilise ASP.NET Core et Selenium pour extraire en temps réel le prix de cryptomonnaie, le volume des échanges et la quantité de monnaie en circulation à partir de place et exchange, et publie ensuite ces données dans un topic Kafka.
+Ce projet utilise Apache Spark pour analyser les données de cryptomonnaie en temps réel. Il traite les données streamées depuis Kafka, les analyse, puis stocke les résultats dans InfluxDB pour la visualisation avec Grafana.
 
-##Prérequis
----------
+## Sommaire
 
--   .NET Core 6
--   Docker et Docker Compose
+1. [Prérequis](#prérequis)
+2. [Architecture du Projet](#architecture-du-projet)
+3. [Fonctionnement](#fonctionnement)
+4. [Exécution](#exécution)
+   - [Variables d'environnement](#variables-denvironnement)
+   - [Lancement des services](#lancement-des-services)
+5. [URL des services](#url-des-services)
 
-##Configuration et exécution
---------------------------
+## Prérequis
 
-### 1\. Variable d'environnement
+- Docker et Docker Compose
 
-Créez un fichier .env à la racine du projet ( pas dans le dossier env qui comporte l'exemple) et entrez les informations demandées
- - L'URI du broker kafka
- - le nom du topic
+## Architecture du Projet
 
-### 2\. Exécution de l'application ASP.NET Core
+- **Application Producer** : Lire les données de cryptomonnaie à partir de différentes sources et les publier dans un topic Kafka.
+- **Spark Master** : Coordonne la distribution des tâches et la gestion des workers Spark.
+- **Spark Workers** : Exécutent les tâches de traitement des données assignées par le Spark Master.
+- **InfluxDB** : Base de données de séries temporelles utilisée pour le stockage des résultats d'analyse.
+- **Grafana** : Outil de visualisation connecté à InfluxDB pour afficher les résultats des analyses.
 
-#### Serveur local
-Compilez et exécutez l'application.
+## Fonctionnement
 
-shCopy code
+Le producteur de données extrait les données de cryptomonnaie à partir de différentes sources et les publie dans un topic Kafka.
+L'application Spark lit en continu les données de Kafka, effectue des analyses et des agrégations, puis écrit les résultats dans InfluxDB. Ces données peuvent ensuite être visualisées et explorées à l'aide de tableaux de bord dans Grafana.
 
-`dotnet build
-dotnet run`
+## Exécution
 
-#### DockerFile
+### Variables d'environnement
 
-Dans un terminal et si votre Dockerfile se trouve dans le répertoire courant :
+Nommez le fichier `.env.example` en `.env` et remplissez les informations demandées.
 
-shCopy code
+### Lancement des services
 
-`docker build -t app .`
+Pour lancer l'ensemble des services, exécutez le script `start_app.sh` à la racine du projet.
 
+```sh
+sh ./start_app.sh
+```
 
-#### DockerCompose
+## URL des services
 
-Avec cette méthode, l'ensemble des autres applications du projet seront également lancées 
-
-Dans un terminal et si votre docker-compose.yml se trouve dans le répertoire courant :
-
-shCopy code
-
-`docker-compose up -d`
-
-
-L'application commencera à scraper les données et à les publier dans le topic Kafka.
-
-##Structure du projet
--------------------
-
--   `Api`: le projet principal contenant le point d'entrée de la solution
--   `Domain`: 
--   `Application`: 
--   `Infrastructure`:
--   `Application`: 
-
-##Comment ça marche
------------------
-
-L'application utilise Selenium pour scraper les données du Bitcoin à partir de CoinMarketCap et Binance en temps réel. Les données extraites sont ensuite transformées et publiées dans un topic Kafka pour une consommation ultérieure.
-
-##Contribution
-------------
+- **Kafka** : [localhost:9092](http://localhost:9092)
+- **Zookeeper** : [localhost:2181](http://localhost:2181)
+- **Spark Master** : [localhost:8080](http://localhost:8080)
+- **Spark Workers** : [localhost:8081](http://localhost:8081)
+- **InfluxDB** : [localhost:8086](http://localhost:8086)
+- **Grafana** : [localhost:3000](http://localhost:3000)
