@@ -12,6 +12,7 @@ docker exec -u root spark-master chown -R 1001:1001 /opt/bitnami/spark/spark/
 
 sleep 10
 
+docker exec --env-file ./env/.env influxdb influx bucket create -n "metrics" -o "${DOCKER_INFLUX_DB_ORG}" -r "1w"
 docker exec --env-file ./env/.env spark-master spark-submit \
       --master spark://"${CONSUMER_RANGE}"4:"${SPARK_MASTER_PORT}" \
       --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0,org.apache.kafka:kafka-clients:2.6.0,org.apache.spark:spark-streaming-kafka-0-10_2.12:3.5.0,org.apache.spark:spark-sql_2.13:3.5.0 \
@@ -20,4 +21,6 @@ docker exec --env-file ./env/.env spark-master spark-submit \
       --conf spark.executor.instances=3 \
       --conf spark.driver.memory=3g \
       --conf spark.driver.cores=4 \
+      --conf "spark.driver.extraJavaOptions=-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.rmi.port=9999 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false" \
+      --conf "spark.executor.extraJavaOptions=-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.rmi.port=9999 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false" \
       spark/apps/main.py
